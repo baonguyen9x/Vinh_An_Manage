@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, View, StyleSheet, StatusBar } from 'react-native';
+import { SafeAreaView, View, StyleSheet, StatusBar, Alert } from 'react-native';
 import { Screen, Member, ApprovalRequest } from './types';
 import SplashScreen from './source/Screens/SplashScreen';
 import LoginScreen from './source/Screens/LoginScreen';
@@ -11,7 +11,7 @@ import MemberListScreen from './source/Screens/MemberListScreen';
 import FamilyTreeScreen from './source/Screens/FamilyTreeScreen';
 import AddMemberScreen from './source/Screens/AddMemberScreen';
 import ApprovalScreen from './source/Screens/ApprovalScreen';
-import { ApprovalService } from './source/services/firebase';
+import { ApprovalService, MemberService } from './source/services/firebase';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 
@@ -112,14 +112,25 @@ const App: React.FC = () => {
   const handleAddMemberRequest = async (memberData: any) => {
     try {
       if (!user.uid) return;
-      await ApprovalService.submitRequest(
-        memberData,
-        user.uid,
-        user.fullName
-      );
+
+      if (user.isAdmin) {
+        // Admin: Thêm trực tiếp vào Members collection
+        await MemberService.create(memberData);
+        Alert.alert("Thành công", "Đã thêm thành viên trực tiếp vào gia phả.");
+      } else {
+        // Member: Gửi yêu cầu qua Approvals collection
+        await ApprovalService.submitRequest(
+          memberData,
+          user.uid,
+          user.fullName
+        );
+        Alert.alert("Gửi yêu cầu", "Yêu cầu đã được gửi. Vui lòng đợi quản trị viên phê duyệt.");
+      }
+
       navigate(Screen.FAMILY_TREE);
     } catch (error) {
-      console.error(error);
+      console.error(error, "handleAddMemberRequest error");
+      Alert.alert("Lỗi", "Không thể thực hiện yêu cầu lúc này. Vui lòng thử lại sau.");
     }
   };
 
@@ -133,7 +144,7 @@ const App: React.FC = () => {
       case Screen.EDIT_PROFILE: return <EditProfileScreen user={user} onBack={() => navigate(Screen.PROFILE)} onUpdate={(u) => { setUser(u); navigate(Screen.PROFILE); }} />;
       case Screen.MEMBER_LIST: return <MemberListScreen onBack={() => navigate(Screen.HOME)} currentUid={user.uid} />;
       case Screen.FAMILY_TREE: return <FamilyTreeScreen onBack={() => navigate(Screen.HOME)} onAdd={() => navigate(Screen.ADD_MEMBER)} />;
-      case Screen.ADD_MEMBER: return <AddMemberScreen onBack={() => navigate(Screen.FAMILY_TREE)} onSave={handleAddMemberRequest} />;
+      case Screen.ADD_MEMBER: return <AddMemberScreen onBack={() => navigate(Screen.FAMILY_TREE)} onSave={handleAddMemberRequest} isAdmin={user.isAdmin} />;
       case Screen.APPROVAL: return <ApprovalScreen onBack={() => navigate(Screen.HOME)} />;
       default: return <HomeScreen user={user} onNavigate={navigate} />;
     }

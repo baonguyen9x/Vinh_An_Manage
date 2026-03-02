@@ -7,36 +7,28 @@ import { MaterialIcon } from '../Common/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from '../Common/Constants';
 import Style from '../Common/Style';
+import Languages from '../Common/Languages';
+import {
+  CATEGORIES, DEPARTMENTS, GENDERS, ORDINATION_LEVELS,
+  HUYNH_TRUONG_ROLES, DOAN_SINH_ROLES, RANKS_MAP,
+  MemberCategory, Department, OrdinationLevel,
+} from '../Common/MemberEnums';
 
 interface Props {
   onBack: () => void;
   onSave: (member: Partial<Member>) => void;
+  isAdmin?: boolean;
 }
 
-const CATEGORIES = ["Huynh trưởng", "Đoàn sinh"];
-const DEPARTMENTS = ["Ngành Oanh", "Ngành Thiếu", "Ngành Thanh"];
-const GENDERS: ("Nam" | "Nữ")[] = ["Nam", "Nữ"];
-const ORDINATION_LEVELS = ["Cấp Tập", "Cấp Tín", "Cấp Tấn", "Cấp Dũng"];
-
-const HUYNH_TRUONG_ROLES = ["Đoàn trưởng", "Đoàn phó", "Liên đoàn trưởng", "Liên đoàn phó", "Thư ký", "Thủ quỷ", "Gia trưởng"];
-const DOAN_SINH_ROLES = ["Đoàn sinh", "Đội trưởng", "Đội phó", "Chúng trưởng", "Chúng phó", "Đầu đàn", "Thứ đàn"];
-
-const RANKS_MAP: Record<string, string[]> = {
-  "Đoàn sinh_Ngành Oanh": ["Mở mắt", "Cánh mềm", "Chân cứng", "Tung bay"],
-  "Đoàn sinh_Ngành Thiếu": ["Hướng Thiện", "Sơ Thiện", "Trung Thiện", "Chánh Thiện"],
-  "Đoàn sinh_Ngành Thanh": ["Hoà", "Minh", "Kiên", "Trực"],
-  "Huynh trưởng": ["Kiên", "Trì", "Định", "Lực"]
-};
-
-const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
+const AddMemberScreen: React.FC<Props> = ({ onBack, onSave, isAdmin }) => {
   const [formData, setFormData] = useState<Partial<Member>>({
     fullName: '',
     dharmaName: '',
-    gender: 'Nam',
-    position: 'Huynh trưởng',
-    department: 'Ngành Oanh',
-    rank: 'Kiên',
-    role: 'Gia trưởng',
+    gender: GENDERS[0],
+    position: MemberCategory.HUYNH_TRUONG,
+    department: Department.OANH,
+    rank: RANKS_MAP[`${MemberCategory.HUYNH_TRUONG}`][0],
+    role: HUYNH_TRUONG_ROLES[0],
     email: '',
     phone: '',
     joinDate: new Date().toISOString().split('T')[0],
@@ -50,15 +42,19 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
   const [error, setError] = useState<string | null>(null);
 
   const calculatePromotionRank = (data: Partial<Member>) => {
-    if (data.position === "Đoàn sinh") return "Đoàn sinh";
+    if (data.position === MemberCategory.DOAN_SINH) {
+      return Languages.get('screen.member_list.tab_doan_sinh');
+    }
 
-    if (data.position === "Huynh trưởng") {
+    if (data.position === MemberCategory.HUYNH_TRUONG) {
       if (data.isOrdained) {
-        return data.ordinationLevel ? `Huynh trưởng ${data.ordinationLevel}` : "Đã thọ cấp";
+        return data.ordinationLevel
+          ? `${Languages.get('screen.member_list.tab_huynh_truong')} ${data.ordinationLevel}`
+          : Languages.get('screen.edit_profile.promotion_ordained');
       } else {
-        if (data.rank === "Kiên") return "Huynh trưởng Lộc Uyển";
-        if (data.rank === "Trì") return "Huynh trưởng A Dục";
-        return "Chưa xác định";
+        if (data.rank === "Kiên") return Languages.get('screen.edit_profile.promotion_loc_uyen');
+        if (data.rank === "Trì") return Languages.get('screen.edit_profile.promotion_a_duc');
+        return Languages.get('screen.add_member.promotion_unknown');
       }
     }
     return "";
@@ -66,7 +62,7 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
 
   const validateRank = (isOrdained: boolean, rank: string) => {
     if (!isOrdained && (rank === "Định" || rank === "Lực")) {
-      setError("Bậc Định và Lực yêu cầu phải thọ cấp mới có thể chọn.");
+      setError(Languages.get('screen.add_member.error_invalid_rank'));
       return false;
     }
     setError(null);
@@ -77,23 +73,27 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
     let newData = { ...formData, [field]: value };
 
     if (field === 'position') {
-      const key = value === "Huynh trưởng" ? "Huynh trưởng" : `Đoàn sinh_${newData.department}`;
+      const key = value === MemberCategory.HUYNH_TRUONG
+        ? MemberCategory.HUYNH_TRUONG
+        : `${MemberCategory.DOAN_SINH}_${newData.department}`;
+
       const availableRanks = RANKS_MAP[key] || [];
       newData.rank = availableRanks[0] || "";
-      newData.role = value === "Huynh trưởng" ? HUYNH_TRUONG_ROLES[0] : DOAN_SINH_ROLES[0];
-      if (value !== "Huynh trưởng") {
+      newData.role = value === MemberCategory.HUYNH_TRUONG ? HUYNH_TRUONG_ROLES[0] : DOAN_SINH_ROLES[0];
+
+      if (value !== MemberCategory.HUYNH_TRUONG) {
         newData.isOrdained = false;
         setError(null);
       }
     }
 
-    if (field === 'department' && newData.position === "Đoàn sinh") {
-      const key = `Đoàn sinh_${value}`;
+    if (field === 'department' && newData.position === MemberCategory.DOAN_SINH) {
+      const key = `${MemberCategory.DOAN_SINH}_${value}`;
       const availableRanks = RANKS_MAP[key] || [];
       newData.rank = availableRanks[0] || "";
     }
 
-    if (newData.position === "Huynh trưởng") {
+    if (newData.position === MemberCategory.HUYNH_TRUONG) {
       validateRank(newData.isOrdained || false, newData.rank || '');
     }
 
@@ -102,16 +102,18 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
   };
 
   const handleSave = () => {
-    if (formData.position === "Huynh trưởng" && !formData.isOrdained && (formData.rank === "Định" || formData.rank === "Lực")) {
-      setError("Không thể gửi. Vui lòng kiểm tra lại bậc học.");
+    if (formData.position === MemberCategory.HUYNH_TRUONG && !formData.isOrdained && (formData.rank === "Định" || formData.rank === "Lực")) {
+      setError(Languages.get('screen.add_member.error_check_rank'));
       return;
     }
     onSave(formData);
   };
 
-  const currentRankKey = formData.position === "Huynh trưởng" ? "Huynh trưởng" : `Đoàn sinh_${formData.department}`;
+  const currentRankKey = formData.position === MemberCategory.HUYNH_TRUONG
+    ? MemberCategory.HUYNH_TRUONG
+    : `${MemberCategory.DOAN_SINH}_${formData.department}`;
   const availableRanks = RANKS_MAP[currentRankKey] || [];
-  const availableRoles = formData.position === "Huynh trưởng" ? HUYNH_TRUONG_ROLES : DOAN_SINH_ROLES;
+  const availableRoles = formData.position === MemberCategory.HUYNH_TRUONG ? HUYNH_TRUONG_ROLES : DOAN_SINH_ROLES;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -120,7 +122,7 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <MaterialIcon name="arrow-back" size={24} color="#008A45" />
           </TouchableOpacity>
-          <WText type="medium16" style={styles.headerTitle}>Thêm Thành Viên</WText>
+          <WText type="medium16" style={styles.headerTitle}>{Languages.get('screen.add_member.title')}</WText>
           <View style={{ width: 24 }} />
         </View>
 
@@ -135,41 +137,41 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
           </View>
 
           <View style={styles.formContainer}>
-            <InputField label="Họ tên" value={formData.fullName || ''} onChange={(v) => handleChange('fullName', v)} />
-            <InputField label="Pháp danh" value={formData.dharmaName || ''} onChange={(v) => handleChange('dharmaName', v)} />
-            <SelectField label="Giới tính" value={formData.gender || 'Nam'} options={GENDERS} onChange={(v) => handleChange('gender', v)} />
-            <SelectField label="Phân loại" value={formData.position || ''} options={CATEGORIES} onChange={(v) => handleChange('position', v)} />
+            <InputField label={Languages.get('screen.edit_profile.label_fullname')} value={formData.fullName || ''} onChange={(v) => handleChange('fullName', v)} />
+            <InputField label={Languages.get('screen.edit_profile.label_dharma_name')} value={formData.dharmaName || ''} onChange={(v) => handleChange('dharmaName', v)} />
+            <SelectField label={Languages.get('screen.edit_profile.label_gender')} value={formData.gender || GENDERS[0]} options={GENDERS} onChange={(v) => handleChange('gender', v)} />
+            <SelectField label={Languages.get('screen.edit_profile.label_category')} value={formData.position || ''} options={CATEGORIES} onChange={(v) => handleChange('position', v)} />
 
-            {formData.position === "Huynh trưởng" && (
+            {formData.position === MemberCategory.HUYNH_TRUONG && (
               <View style={styles.ordainedSection}>
-                <WText type="medium10" style={styles.sectionLabel}>Tình trạng thọ cấp</WText>
+                <WText type="medium10" style={styles.sectionLabel}>{Languages.get('screen.edit_profile.label_ordination_status')}</WText>
                 <View style={styles.ordainedRow}>
                   <TouchableOpacity onPress={() => handleChange('isOrdained', true)} style={styles.ordainedOption} activeOpacity={0.7}>
                     <View style={[styles.checkbox, formData.isOrdained && styles.checkboxActive]}>
                       {formData.isOrdained && <MaterialIcon name="check" size={14} color="#FFF" />}
                     </View>
-                    <WText type="medium14" style={[styles.ordainedText, formData.isOrdained && styles.ordainedTextActive]}>Đã thọ cấp</WText>
+                    <WText type="medium14" style={[styles.ordainedText, formData.isOrdained && styles.ordainedTextActive]}>{Languages.get('screen.edit_profile.ordination_yes')}</WText>
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={() => handleChange('isOrdained', false)} style={styles.ordainedOption} activeOpacity={0.7}>
                     <View style={[styles.checkbox, !formData.isOrdained && styles.checkboxActive]}>
                       {!formData.isOrdained && <MaterialIcon name="check" size={14} color="#FFF" />}
                     </View>
-                    <WText type="medium14" style={[styles.ordainedText, !formData.isOrdained && styles.ordainedTextActive]}>Chưa thọ cấp</WText>
+                    <WText type="medium14" style={[styles.ordainedText, !formData.isOrdained && styles.ordainedTextActive]}>{Languages.get('screen.edit_profile.ordination_no')}</WText>
                   </TouchableOpacity>
                 </View>
 
                 {formData.isOrdained && (
                   <View style={styles.ordainedDetails}>
-                    <InputField label="Ngày thọ cấp" value={formData.ordinationDate || ''} onChange={(v) => handleChange('ordinationDate', v)} />
-                    <SelectField label="Cấp thọ nhận" value={formData.ordinationLevel || ''} options={ORDINATION_LEVELS} onChange={(v) => handleChange('ordinationLevel', v)} />
+                    <InputField label={Languages.get('screen.edit_profile.label_ordination_date')} value={formData.ordinationDate || ''} onChange={(v) => handleChange('ordinationDate', v)} />
+                    <SelectField label={Languages.get('screen.edit_profile.label_ordination_level')} value={formData.ordinationLevel || ''} options={ORDINATION_LEVELS} onChange={(v) => handleChange('ordinationLevel', v)} />
                   </View>
                 )}
               </View>
             )}
 
-            <SelectField label="Ngành" value={formData.department || ''} options={DEPARTMENTS} onChange={(v) => handleChange('department', v)} />
-            <SelectField label="Bậc học" value={formData.rank || ''} options={availableRanks} onChange={(v) => handleChange('rank', v)} />
+            <SelectField label={Languages.get('screen.edit_profile.label_department')} value={formData.department || ''} options={DEPARTMENTS} onChange={(v) => handleChange('department', v)} />
+            <SelectField label={Languages.get('screen.edit_profile.label_rank')} value={formData.rank || ''} options={availableRanks} onChange={(v) => handleChange('rank', v)} />
 
             {!!error && (
               <View style={styles.errorBox}>
@@ -179,18 +181,18 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
             )}
 
             <View style={styles.promotionSection}>
-              <WText type="medium10" style={styles.sectionLabel}>Cấp bậc (Tự động)</WText>
+              <WText type="medium10" style={styles.sectionLabel}>{Languages.get('screen.edit_profile.label_promotion_rank')}</WText>
               <View style={styles.promotionBox}>
                 <WText type="medium14" style={styles.promotionBoxText}>
-                  {formData.promotionRank || "Chưa xác định"}
+                  {formData.promotionRank || Languages.get('screen.add_member.promotion_unknown')}
                 </WText>
               </View>
             </View>
 
-            <SelectField label="Chức vụ" value={formData.role || ''} options={availableRoles} onChange={(v) => handleChange('role', v)} />
-            <InputField label="Email" value={formData.email || ''} onChange={(v) => handleChange('email', v)} />
-            <InputField label="Số điện thoại" value={formData.phone || ''} onChange={(v) => handleChange('phone', v)} />
-            <InputField label="Ngày bắt đầu sinh hoạt" value={formData.joinDate || ''} onChange={(v) => handleChange('joinDate', v)} />
+            <SelectField label={Languages.get('screen.edit_profile.label_role')} value={formData.role || ''} options={availableRoles} onChange={(v) => handleChange('role', v)} />
+            <InputField label={Languages.get('screen.edit_profile.label_email')} value={formData.email || ''} onChange={(v) => handleChange('email', v)} />
+            <InputField label={Languages.get('screen.edit_profile.label_phone')} value={formData.phone || ''} onChange={(v) => handleChange('phone', v)} />
+            <InputField label={Languages.get('screen.edit_profile.label_join_date')} value={formData.joinDate || ''} onChange={(v) => handleChange('joinDate', v)} />
           </View>
 
           <TouchableOpacity
@@ -198,7 +200,9 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
             style={styles.saveButton}
             activeOpacity={0.8}
           >
-            <WText type="medium14" style={styles.saveButtonText}>GỬI YÊU CẦU THÊM</WText>
+            <WText type="medium14" style={styles.saveButtonText}>
+              {isAdmin ? Languages.get('screen.add_member.btn_admin_submit') : Languages.get('screen.add_member.btn_submit')}
+            </WText>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -214,7 +218,7 @@ const InputField: React.FC<{ label: string, value: string, onChange: (v: string)
         style={styles.textInput}
         value={value}
         onChangeText={onChange}
-        placeholder="Nhập..."
+        placeholder={Languages.get('screen.add_member.placeholder_input')}
         placeholderTextColor="#9CA3AF"
       />
     </View>
@@ -369,6 +373,7 @@ const styles = StyleSheet.create({
   checkboxActive: {
     backgroundColor: '#008A45',
     borderColor: '#008A45',
+    borderWidth: 0,
   },
   ordainedText: {
     color: '#6B7280',

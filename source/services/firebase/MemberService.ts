@@ -36,6 +36,19 @@ export class MemberService {
         });
     }
 
+    // ─── Tạo mới member trực tiếp (dành cho Admin) ────────────────
+    static async create(
+        data: Omit<FirestoreMember, 'id' | 'createdAt' | 'updatedAt'>
+    ): Promise<string> {
+        const ref = await firestore().collection(COLLECTION).add({
+            ...data,
+            status: 'active',
+            createdAt: firestore.FieldValue.serverTimestamp(),
+            updatedAt: firestore.FieldValue.serverTimestamp(),
+        });
+        return ref.id;
+    }
+
     // ─── Tìm kiếm theo tên hoặc pháp danh ───────────────────────
     static async search(query: string): Promise<FirestoreMember[]> {
         // Firestore không hỗ trợ full-text search — lấy all rồi filter client-side
