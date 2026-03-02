@@ -356,10 +356,13 @@ const WheelColumn: React.FC<WheelColumnProps> = ({ items, selected, onSelect, la
   const ref = React.useRef<ScrollView>(null);
 
   React.useEffect(() => {
-    setTimeout(() => {
-      ref.current?.scrollTo({ y: idx * ITEM_H, animated: false });
-    }, 50);
-  }, []);
+    const timer = setTimeout(() => {
+      if (ref.current) {
+        ref.current.scrollTo({ y: idx * ITEM_H, animated: false });
+      }
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [idx]);
 
   return (
     <View style={dateStyles.column}>
@@ -411,9 +414,14 @@ interface DatePickerModalProps {
 }
 const DatePickerModal: React.FC<DatePickerModalProps> = ({ value, onDone, onClose }) => {
   const parts = value ? value.split('/') : [];
-  const [selDay, setSelDay] = useState(parts[0] || '01');
-  const [selMonth, setSelMonth] = useState(parts[1] || '01');
-  const [selYear, setSelYear] = useState(parts[2] || String(CUR_YEAR));
+  const now = new Date();
+  const d = String(now.getDate()).padStart(2, '0');
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const y = String(now.getFullYear());
+
+  const [selDay, setSelDay] = useState(parts[0] ? parts[0].padStart(2, '0') : d);
+  const [selMonth, setSelMonth] = useState(parts[1] ? parts[1].padStart(2, '0') : m);
+  const [selYear, setSelYear] = useState(parts[2] || y);
 
   return (
     <Modal transparent animationType="slide" visible onRequestClose={onClose}>

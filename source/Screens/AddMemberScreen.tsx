@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import {
+  View, TextInput, TouchableOpacity, Image,
+  StyleSheet, ScrollView, KeyboardAvoidingView,
+  ActivityIndicator, Platform, Modal, FlatList, Animated, StatusBar,
+} from 'react-native';
 import WText from '../Common/WText';
-import { Picker } from '@react-native-picker/picker';
 import { Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,58 +13,81 @@ import Style from '../Common/Style';
 import Languages from '../Common/Languages';
 import {
   CATEGORIES, DEPARTMENTS, GENDERS, ORDINATION_LEVELS,
-  HUYNH_TRUONG_ROLES, DOAN_SINH_ROLES, RANKS_MAP,
-  MemberCategory, Department, OrdinationLevel,
+  RANKS_MAP,
+  MemberCategory, Department, getRolesByCategory, getRankKey,
+  MemberStatus,
 } from '../Common/MemberEnums';
 
 interface Props {
   onBack: () => void;
   onSave: (member: Partial<Member>) => void;
   isAdmin?: boolean;
+  initialData?: Partial<Member>;
 }
 
-const AddMemberScreen: React.FC<Props> = ({ onBack, onSave, isAdmin }) => {
-  const [formData, setFormData] = useState<Partial<Member>>({
-    fullName: '',
-    dharmaName: '',
-    gender: GENDERS[0],
-    position: MemberCategory.HUYNH_TRUONG,
-    department: Department.OANH,
-    rank: RANKS_MAP[`${MemberCategory.HUYNH_TRUONG}`][0],
-    role: HUYNH_TRUONG_ROLES[0],
-    email: '',
-    phone: '',
-    joinDate: new Date().toISOString().split('T')[0],
-    avatar: 'https://i.pravatar.cc/300?u=new',
-    status: 'active',
-    isOrdained: false,
-    ordinationDate: '',
-    ordinationLevel: '',
-    promotionRank: 'Huynh trưởng Lộc Uyển'
-  });
-  const [error, setError] = useState<string | null>(null);
+const AddMemberScreen: React.FC<Props> = ({ onBack, onSave, isAdmin, initialData }) => {
+  const [formData, setFormData] = useState<Partial<Member>>(() => {
+    const pos = initialData?.position || '';
+    const dept = initialData?.department || '';
+    const role = initialData?.role || (pos ? getRolesByCategory(pos)[0] : '');
 
-  const calculatePromotionRank = (data: Partial<Member>) => {
-    if (data.position === MemberCategory.DOAN_SINH) {
-      return Languages.get('screen.member_list.tab_doan_sinh');
+    // Tìm rank mặc định nếu có position và department
+    let defaultRank = '';
+    if (pos) {
+      const key = getRankKey(pos, dept || Department.OANH);
+      const ranks = RANKS_MAP[key] || [];
+      defaultRank = ranks[0] || '';
     }
 
+    const baseData = {
+      fullName: '',
+      dharmaName: '',
+      gender: GENDERS[0],
+      position: pos as any,
+      department: dept as any,
+      rank: defaultRank,
+      role: role as any,
+      email: '',
+      phone: '',
+      joinDate: new Date().toLocaleDateString('vi-VN'),
+      avatar: '',
+      status: MemberStatus.ACTIVE,
+      isOrdained: false,
+      ordinationDate: '',
+      ordinationLevel: '' as any,
+      ...initialData,
+    };
+
+    return baseData;
+  });
+
+  // Cập nhật promotionRank sau khi có baseData
+  React.useEffect(() => {
+    if (!formData.promotionRank) {
+      setFormData(prev => ({ ...prev, promotionRank: calculatePromotionRank(prev) }));
+    }
+  }, []);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // ── Logic tính cấp bậc tự động ──────────────────────────────
+  const calculatePromotionRank = (data: Partial<Member>): string => {
+    if (data.position === MemberCategory.DOAN_SINH) return Languages.get('screen.member_list.tab_doan_sinh');
     if (data.position === MemberCategory.HUYNH_TRUONG) {
       if (data.isOrdained) {
         return data.ordinationLevel
-          ? `${Languages.get('screen.member_list.tab_huynh_truong')} ${data.ordinationLevel}`
+          ? `${MemberCategory.HUYNH_TRUONG} ${data.ordinationLevel}`
           : Languages.get('screen.edit_profile.promotion_ordained');
-      } else {
-        if (data.rank === "Kiên") return Languages.get('screen.edit_profile.promotion_loc_uyen');
-        if (data.rank === "Trì") return Languages.get('screen.edit_profile.promotion_a_duc');
-        return Languages.get('screen.add_member.promotion_unknown');
       }
+      if (data.rank === 'Kiên') return Languages.get('screen.edit_profile.promotion_loc_uyen');
+      if (data.rank === 'Trì') return Languages.get('screen.edit_profile.promotion_a_duc');
+      return Languages.get('common.undefined');
     }
-    return "";
+    return '';
   };
 
-  const validateRank = (isOrdained: boolean, rank: string) => {
-    if (!isOrdained && (rank === "Định" || rank === "Lực")) {
+  const validateRank = (isOrdained: boolean, rank: string): boolean => {
+    if (!isOrdained && (rank === 'Định' || rank === 'Lực')) {
       setError(Languages.get('screen.add_member.error_invalid_rank'));
       return false;
     }
@@ -73,13 +99,15 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave, isAdmin }) => {
     let newData = { ...formData, [field]: value };
 
     if (field === 'position') {
-      const key = value === MemberCategory.HUYNH_TRUONG
-        ? MemberCategory.HUYNH_TRUONG
-        : `${MemberCategory.DOAN_SINH}_${newData.department}`;
+      const key = getRankKey(value, newData.department || Department.OANH);
+      const ranks = RANKS_MAP[key] || [];
+      newData.rank = ranks[0] || '';
 
-      const availableRanks = RANKS_MAP[key] || [];
-      newData.rank = availableRanks[0] || "";
-      newData.role = value === MemberCategory.HUYNH_TRUONG ? HUYNH_TRUONG_ROLES[0] : DOAN_SINH_ROLES[0];
+      const roles = getRolesByCategory(value);
+      // Nếu role hiện tại không thuộc category mới thì mới reset về mặc định
+      if (!roles.includes(newData.role as any)) {
+        newData.role = roles[0] || '';
+      }
 
       if (value !== MemberCategory.HUYNH_TRUONG) {
         newData.isOrdained = false;
@@ -88,9 +116,8 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave, isAdmin }) => {
     }
 
     if (field === 'department' && newData.position === MemberCategory.DOAN_SINH) {
-      const key = `${MemberCategory.DOAN_SINH}_${value}`;
-      const availableRanks = RANKS_MAP[key] || [];
-      newData.rank = availableRanks[0] || "";
+      const ranks = RANKS_MAP[`${MemberCategory.DOAN_SINH}_${value}`] || [];
+      newData.rank = ranks[0] || '';
     }
 
     if (newData.position === MemberCategory.HUYNH_TRUONG) {
@@ -101,78 +128,175 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave, isAdmin }) => {
     setFormData(newData);
   };
 
-  const handleSave = () => {
-    if (formData.position === MemberCategory.HUYNH_TRUONG && !formData.isOrdained && (formData.rank === "Định" || formData.rank === "Lực")) {
+  const handleSave = async () => {
+    if (
+      formData.position === MemberCategory.HUYNH_TRUONG &&
+      !formData.isOrdained &&
+      (formData.rank === 'Định' || formData.rank === 'Lực')
+    ) {
       setError(Languages.get('screen.add_member.error_check_rank'));
       return;
     }
-    onSave(formData);
+    setSaving(true);
+    try {
+      await onSave(formData);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const currentRankKey = formData.position === MemberCategory.HUYNH_TRUONG
-    ? MemberCategory.HUYNH_TRUONG
-    : `${MemberCategory.DOAN_SINH}_${formData.department}`;
-  const availableRanks = RANKS_MAP[currentRankKey] || [];
-  const availableRoles = formData.position === MemberCategory.HUYNH_TRUONG ? HUYNH_TRUONG_ROLES : DOAN_SINH_ROLES;
+  const isEdit = !!initialData?.uid;
+  const availableRanks = RANKS_MAP[getRankKey(formData.position || MemberCategory.HUYNH_TRUONG, formData.department || Department.OANH)] || [];
+  const availableRoles = getRolesByCategory(formData.position || MemberCategory.HUYNH_TRUONG);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Constants.IS_IOS ? 'padding' : undefined} style={styles.container}>
+      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" translucent={false} />
+      <KeyboardAvoidingView
+        behavior={Constants.IS_IOS ? 'padding' : undefined}
+        style={styles.container}
+      >
+        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <MaterialIcon name="arrow-back" size={24} color="#008A45" />
           </TouchableOpacity>
-          <WText type="medium16" style={styles.headerTitle}>{Languages.get('screen.add_member.title')}</WText>
-          <View style={{ width: 24 }} />
+          <WText type="medium16" style={styles.headerTitle}>
+            {initialData?.uid ? Languages.get('screen.add_member.title_edit') : Languages.get('screen.add_member.title')}
+          </WText>
+          <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Avatar */}
           <View style={styles.avatarSection}>
             <View style={styles.avatarContainer}>
-              <Image source={{ uri: formData.avatar }} style={styles.avatarImage} />
+              <Image
+                source={formData?.avatar ? { uri: formData.avatar } : require('../Images/ic_user_default.png')}
+                style={styles.avatarImage}
+              />
             </View>
             <TouchableOpacity style={styles.cameraButton}>
               <MaterialIcon name="photo-camera" size={16} color="#008A45" />
             </TouchableOpacity>
           </View>
 
+          {/* Form */}
           <View style={styles.formContainer}>
-            <InputField label={Languages.get('screen.edit_profile.label_fullname')} value={formData.fullName || ''} onChange={(v) => handleChange('fullName', v)} />
-            <InputField label={Languages.get('screen.edit_profile.label_dharma_name')} value={formData.dharmaName || ''} onChange={(v) => handleChange('dharmaName', v)} />
-            <SelectField label={Languages.get('screen.edit_profile.label_gender')} value={formData.gender || GENDERS[0]} options={GENDERS} onChange={(v) => handleChange('gender', v)} />
-            <SelectField label={Languages.get('screen.edit_profile.label_category')} value={formData.position || ''} options={CATEGORIES} onChange={(v) => handleChange('position', v)} />
+            {/* Thông tin cơ bản */}
+            <SectionTitle title={Languages.get('screen.edit_profile.section_basic_info')} />
+            <EditField
+              icon="person"
+              label={Languages.get('screen.edit_profile.label_fullname')}
+              value={formData.fullName || ''}
+              onChange={(v) => handleChange('fullName', v)}
+            />
+            <EditField
+              icon="spa"
+              label={Languages.get('screen.edit_profile.label_dharma_name')}
+              value={formData.dharmaName || ''}
+              onChange={(v) => handleChange('dharmaName', v)}
+            />
+            <SelectField
+              icon="wc"
+              label={Languages.get('screen.edit_profile.label_gender')}
+              value={formData.gender || GENDERS[0]}
+              options={GENDERS}
+              onChange={(v) => handleChange('gender', v)}
+            />
+            <EditField
+              icon="email"
+              label={Languages.get('screen.edit_profile.label_email')}
+              value={formData.email || ''}
+              onChange={(v) => handleChange('email', v)}
+              keyboardType="email-address"
+            />
+            <EditField
+              icon="phone"
+              label={Languages.get('screen.edit_profile.label_phone')}
+              value={formData.phone || ''}
+              onChange={(v) => handleChange('phone', v)}
+              keyboardType="phone-pad"
+            />
+            <DateField
+              icon="calendar-today"
+              label={Languages.get('screen.edit_profile.label_join_date')}
+              value={formData.joinDate || ''}
+              onChange={(v) => handleChange('joinDate', v)}
+            />
 
+            {/* Thông tin tổ chức */}
+            <SectionTitle title={Languages.get('screen.edit_profile.section_org_info')} />
+            <SelectField
+              icon="category"
+              label={Languages.get('screen.edit_profile.label_category')}
+              value={formData.position || ''}
+              options={CATEGORIES}
+              onChange={(v) => handleChange('position', v)}
+            />
+            <SelectField
+              icon="account-tree"
+              label={Languages.get('screen.edit_profile.label_department')}
+              value={formData.department || ''}
+              options={DEPARTMENTS}
+              onChange={(v) => handleChange('department', v)}
+            />
+            <SelectField
+              icon="school"
+              label={Languages.get('screen.edit_profile.label_rank')}
+              value={formData.rank || ''}
+              options={availableRanks}
+              onChange={(v) => handleChange('rank', v)}
+            />
+            <SelectField
+              icon="badge"
+              label={Languages.get('screen.edit_profile.label_role')}
+              value={formData.role || ''}
+              options={availableRoles}
+              onChange={(v) => handleChange('role', v)}
+            />
+
+            {/* Tình trạng thọ cấp (chỉ Huynh trưởng) */}
             {formData.position === MemberCategory.HUYNH_TRUONG && (
-              <View style={styles.ordainedSection}>
-                <WText type="medium10" style={styles.sectionLabel}>{Languages.get('screen.edit_profile.label_ordination_status')}</WText>
+              <View style={styles.ordainedCard}>
+                <WText type="medium10" style={styles.ordainedCardTitle}>
+                  {Languages.get('screen.edit_profile.label_ordination_status')}
+                </WText>
                 <View style={styles.ordainedRow}>
-                  <TouchableOpacity onPress={() => handleChange('isOrdained', true)} style={styles.ordainedOption} activeOpacity={0.7}>
-                    <View style={[styles.checkbox, formData.isOrdained && styles.checkboxActive]}>
-                      {formData.isOrdained && <MaterialIcon name="check" size={14} color="#FFF" />}
-                    </View>
-                    <WText type="medium14" style={[styles.ordainedText, formData.isOrdained && styles.ordainedTextActive]}>{Languages.get('screen.edit_profile.ordination_yes')}</WText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity onPress={() => handleChange('isOrdained', false)} style={styles.ordainedOption} activeOpacity={0.7}>
-                    <View style={[styles.checkbox, !formData.isOrdained && styles.checkboxActive]}>
-                      {!formData.isOrdained && <MaterialIcon name="check" size={14} color="#FFF" />}
-                    </View>
-                    <WText type="medium14" style={[styles.ordainedText, !formData.isOrdained && styles.ordainedTextActive]}>{Languages.get('screen.edit_profile.ordination_no')}</WText>
-                  </TouchableOpacity>
+                  <OrdinationOption
+                    label={Languages.get('screen.edit_profile.ordination_yes')}
+                    active={!!formData.isOrdained}
+                    onPress={() => handleChange('isOrdained', true)}
+                  />
+                  <OrdinationOption
+                    label={Languages.get('screen.edit_profile.ordination_no')}
+                    active={!formData.isOrdained}
+                    onPress={() => handleChange('isOrdained', false)}
+                  />
                 </View>
-
                 {formData.isOrdained && (
                   <View style={styles.ordainedDetails}>
-                    <InputField label={Languages.get('screen.edit_profile.label_ordination_date')} value={formData.ordinationDate || ''} onChange={(v) => handleChange('ordinationDate', v)} />
-                    <SelectField label={Languages.get('screen.edit_profile.label_ordination_level')} value={formData.ordinationLevel || ''} options={ORDINATION_LEVELS} onChange={(v) => handleChange('ordinationLevel', v)} />
+                    <DateField
+                      icon="event"
+                      label={Languages.get('screen.edit_profile.label_ordination_date')}
+                      value={formData.ordinationDate || ''}
+                      onChange={(v) => handleChange('ordinationDate', v)}
+                    />
+                    <SelectField
+                      icon="military-tech"
+                      label={Languages.get('screen.edit_profile.label_ordination_level')}
+                      value={formData.ordinationLevel || ''}
+                      options={ORDINATION_LEVELS}
+                      onChange={(v) => handleChange('ordinationLevel', v)}
+                    />
                   </View>
                 )}
               </View>
             )}
 
-            <SelectField label={Languages.get('screen.edit_profile.label_department')} value={formData.department || ''} options={DEPARTMENTS} onChange={(v) => handleChange('department', v)} />
-            <SelectField label={Languages.get('screen.edit_profile.label_rank')} value={formData.rank || ''} options={availableRanks} onChange={(v) => handleChange('rank', v)} />
-
+            {/* Error */}
             {!!error && (
               <View style={styles.errorBox}>
                 <MaterialIcon name="error-outline" size={18} color="#EF4444" />
@@ -180,29 +304,36 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave, isAdmin }) => {
               </View>
             )}
 
-            <View style={styles.promotionSection}>
-              <WText type="medium10" style={styles.sectionLabel}>{Languages.get('screen.edit_profile.label_promotion_rank')}</WText>
-              <View style={styles.promotionBox}>
-                <WText type="medium14" style={styles.promotionBoxText}>
+            {/* Cấp bậc tự động */}
+            <View style={styles.promotionCard}>
+              <MaterialIcon name="stars" size={18} color="#008A45" />
+              <View style={styles.promotionTextContainer}>
+                <WText type="medium10" style={styles.promotionLabel}>
+                  {Languages.get('screen.edit_profile.label_promotion_rank')}
+                </WText>
+                <WText type="medium14" style={styles.promotionValue}>
                   {formData.promotionRank || Languages.get('screen.add_member.promotion_unknown')}
                 </WText>
               </View>
             </View>
-
-            <SelectField label={Languages.get('screen.edit_profile.label_role')} value={formData.role || ''} options={availableRoles} onChange={(v) => handleChange('role', v)} />
-            <InputField label={Languages.get('screen.edit_profile.label_email')} value={formData.email || ''} onChange={(v) => handleChange('email', v)} />
-            <InputField label={Languages.get('screen.edit_profile.label_phone')} value={formData.phone || ''} onChange={(v) => handleChange('phone', v)} />
-            <InputField label={Languages.get('screen.edit_profile.label_join_date')} value={formData.joinDate || ''} onChange={(v) => handleChange('joinDate', v)} />
           </View>
 
+          {/* Submit button */}
           <TouchableOpacity
             onPress={handleSave}
-            style={styles.saveButton}
+            style={[styles.saveButton, saving && { opacity: 0.7 }]}
             activeOpacity={0.8}
+            disabled={saving}
           >
-            <WText type="medium14" style={styles.saveButtonText}>
-              {isAdmin ? Languages.get('screen.add_member.btn_admin_submit') : Languages.get('screen.add_member.btn_submit')}
-            </WText>
+            {saving
+              ? <ActivityIndicator color="#FFFFFF" />
+              : <WText type="medium14" style={styles.saveButtonText}>
+                {isAdmin
+                  ? (isEdit ? Languages.get('screen.add_member.btn_admin_update') : Languages.get('screen.add_member.btn_admin_submit'))
+                  : (isEdit ? Languages.get('screen.add_member.btn_member_request_update') : Languages.get('screen.add_member.btn_submit'))
+                }
+              </WText>
+            }
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -210,116 +341,401 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave, isAdmin }) => {
   );
 };
 
-const InputField: React.FC<{ label: string, value: string, onChange: (v: string) => void }> = ({ label, value, onChange }) => (
-  <View style={styles.fieldContainer}>
-    <WText type="medium10" style={styles.fieldLabel}>{label}</WText>
-    <View style={styles.inputBorder}>
+// ── Sub-components ────────────────────────────────────────────
+
+const SectionTitle = ({ title }: { title: string }) => (
+  <View style={styles.sectionTitleRow}>
+    <View style={styles.sectionTitleBar} />
+    <WText type="medium11" style={styles.sectionTitleText}>{title}</WText>
+  </View>
+);
+
+interface EditFieldProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  icon?: string;
+  keyboardType?: any;
+}
+const EditField: React.FC<EditFieldProps> = ({ label, value, onChange, icon, keyboardType }) => (
+  <View style={styles.fieldCard}>
+    <View style={styles.fieldIconBox}>
+      <MaterialIcon name={icon || 'edit'} size={16} color="#008A45" />
+    </View>
+    <View style={styles.fieldContent}>
+      <WText type="medium10" style={styles.fieldLabel}>{label}</WText>
       <TextInput
         style={styles.textInput}
         value={value}
         onChangeText={onChange}
-        placeholder={Languages.get('screen.add_member.placeholder_input')}
+        keyboardType={keyboardType}
         placeholderTextColor="#9CA3AF"
+        placeholder={Languages.get('screen.add_member.placeholder_input')}
       />
     </View>
   </View>
 );
 
-const SelectField: React.FC<{ label: string, value: string, options: string[], onChange: (v: string) => void }> = ({ label, value, options, onChange }) => (
-  <View style={styles.fieldContainer}>
-    <WText type="medium10" style={styles.fieldLabel}>{label}</WText>
-    <View style={styles.pickerBorder}>
-      <Picker
-        selectedValue={value}
-        onValueChange={(itemValue) => onChange(itemValue)}
-        style={styles.picker}
-      >
-        <Picker.Item label="__" value="" color="#9CA3AF" />
-        {options.map(opt => <Picker.Item key={opt} label={opt} value={opt} />)}
-      </Picker>
+// ── Pure JS DateField ───────────────────────────────────────────
+
+const ITEM_H = 44;
+const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+const months = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+const CUR_YEAR = new Date().getFullYear();
+const years = Array.from({ length: 80 }, (_, i) => String(CUR_YEAR - i));
+
+interface WheelColumnProps {
+  items: string[];
+  selected: string;
+  onSelect: (v: string) => void;
+  label: string;
+}
+const WheelColumn: React.FC<WheelColumnProps> = ({ items, selected, onSelect, label }) => {
+  const idx = Math.max(0, items.indexOf(selected));
+  const ref = React.useRef<ScrollView>(null);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (ref.current) {
+        ref.current.scrollTo({ y: idx * ITEM_H, animated: false });
+      }
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [idx]);
+
+  return (
+    <View style={dateStyles.column}>
+      <WText type="medium10" style={dateStyles.columnLabel}>{label}</WText>
+      <View style={dateStyles.columnMask}>
+        <View style={dateStyles.highlightBar} />
+        <ScrollView
+          ref={ref}
+          style={dateStyles.columnScroll}
+          showsVerticalScrollIndicator={false}
+          snapToInterval={ITEM_H}
+          decelerationRate="fast"
+          contentContainerStyle={{ paddingVertical: ITEM_H }}
+          onMomentumScrollEnd={(e) => {
+            const i = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
+            const clamped = Math.max(0, Math.min(i, items.length - 1));
+            onSelect(items[clamped]);
+          }}
+        >
+          {items.map((item) => (
+            <TouchableOpacity
+              key={item}
+              style={dateStyles.columnItem}
+              onPress={() => {
+                const i = items.indexOf(item);
+                ref.current?.scrollTo({ y: i * ITEM_H, animated: true });
+                onSelect(item);
+              }}
+            >
+              <WText
+                type={item === selected ? 'medium16' : 'regular14'}
+                style={[dateStyles.columnItemText, item === selected && dateStyles.columnItemTextSelected]}
+              >
+                {item}
+              </WText>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
     </View>
-  </View>
+  );
+};
+
+const DatePickerModal: React.FC<{ value: string; onDone: (v: string) => void; onClose: () => void }> = ({ value, onDone, onClose }) => {
+  const parts = value ? value.split('/') : [];
+  const now = new Date();
+  const d = String(now.getDate()).padStart(2, '0');
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const y = String(now.getFullYear());
+
+  const [selDay, setSelDay] = useState(parts[0] ? parts[0].padStart(2, '0') : d);
+  const [selMonth, setSelMonth] = useState(parts[1] ? parts[1].padStart(2, '0') : m);
+  const [selYear, setSelYear] = useState(parts[2] || y);
+
+  return (
+    <Modal transparent animationType="slide" visible onRequestClose={onClose}>
+      <TouchableOpacity style={dateStyles.backdrop} activeOpacity={1} onPress={onClose} />
+      <View style={dateStyles.pickerContainer}>
+        <View style={dateStyles.sheetHandle} />
+        <View style={dateStyles.pickerHeader}>
+          <TouchableOpacity onPress={onClose} style={dateStyles.cancelBtn}>
+            <WText type="medium14" style={dateStyles.cancelText}>{Languages.get('screen.edit_profile.date_picker_cancel')}</WText>
+          </TouchableOpacity>
+          <WText type="medium14" style={dateStyles.pickerTitle}>{Languages.get('screen.edit_profile.date_picker_title')}</WText>
+          <TouchableOpacity
+            onPress={() => onDone(`${selDay}/${selMonth}/${selYear}`)}
+            style={dateStyles.doneBtn}
+          >
+            <WText type="medium14" style={dateStyles.doneText}>{Languages.get('screen.edit_profile.date_picker_done')}</WText>
+          </TouchableOpacity>
+        </View>
+        <View style={dateStyles.wheelsRow}>
+          <WheelColumn items={days} selected={selDay} onSelect={setSelDay} label={Languages.get('screen.edit_profile.date_picker_day')} />
+          <View style={dateStyles.wheelDivider} />
+          <WheelColumn items={months} selected={selMonth} onSelect={setSelMonth} label={Languages.get('screen.edit_profile.date_picker_month')} />
+          <View style={dateStyles.wheelDivider} />
+          <WheelColumn items={years} selected={selYear} onSelect={setSelYear} label={Languages.get('screen.edit_profile.date_picker_year')} />
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const DateField: React.FC<{ label: string; value: string; onChange: (v: string) => void; icon?: string }> = ({ label, value, onChange, icon }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <>
+      <TouchableOpacity style={styles.selectCard} onPress={() => setShow(true)} activeOpacity={0.75}>
+        <View style={styles.fieldIconBox}>
+          <MaterialIcon name={icon || 'calendar-today'} size={16} color="#008A45" />
+        </View>
+        <View style={styles.fieldContent}>
+          <WText type="medium10" style={styles.fieldLabel}>{label}</WText>
+          <WText type="medium14" style={[styles.textInput, !value && styles.datePlaceholder]}>
+            {value || Languages.get('screen.edit_profile.date_placeholder')}
+          </WText>
+        </View>
+        <MaterialIcon name="event" size={18} color="#9CA3AF" />
+      </TouchableOpacity>
+      {show && (
+        <DatePickerModal
+          value={value}
+          onDone={(v) => { onChange(v); setShow(false); }}
+          onClose={() => setShow(false)}
+        />
+      )}
+    </>
+  );
+};
+
+interface SelectFieldProps {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+  icon?: string;
+}
+const SelectField: React.FC<SelectFieldProps> = ({ label, value, options, onChange, icon }) => {
+  const [open, setOpen] = useState(false);
+  const slideAnim = useRef(new Animated.Value(300)).current;
+
+  const openSheet = () => {
+    setOpen(true);
+    Animated.spring(slideAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 65,
+      friction: 11,
+    }).start();
+  };
+
+  const closeSheet = () => {
+    Animated.timing(slideAnim, {
+      toValue: 300,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => setOpen(false));
+  };
+
+  const handleSelect = (opt: string) => {
+    onChange(opt);
+    closeSheet();
+  };
+
+  return (
+    <>
+      <TouchableOpacity style={styles.selectCard} onPress={openSheet} activeOpacity={0.75}>
+        <View style={styles.fieldIconBox}>
+          <MaterialIcon name={icon || 'list'} size={16} color="#008A45" />
+        </View>
+        <View style={styles.fieldContent}>
+          <WText type="medium10" style={styles.fieldLabel}>{label}</WText>
+          <WText
+            type="medium14"
+            style={[styles.selectValue, !value && styles.selectPlaceholder]}
+            numberOfLines={1}
+          >
+            {value || Languages.get('screen.edit_profile.picker_placeholder')}
+          </WText>
+        </View>
+        <MaterialIcon name="keyboard-arrow-down" size={20} color="#9CA3AF" />
+      </TouchableOpacity>
+
+      <Modal visible={open} transparent animationType="none" onRequestClose={closeSheet}>
+        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={closeSheet} />
+        <Animated.View style={[styles.modalSheet, { transform: [{ translateY: slideAnim }] }]}>
+          <View style={styles.sheetHandle} />
+          <View style={styles.sheetHeader}>
+            <WText type="medium14" style={styles.sheetTitle}>{label}</WText>
+            <TouchableOpacity onPress={closeSheet} style={styles.sheetCloseBtn}>
+              <MaterialIcon name="close" size={20} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={options}
+            keyExtractor={(item) => item}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.sheetList}
+            renderItem={({ item }) => {
+              const selected = item === value;
+              return (
+                <TouchableOpacity
+                  style={[styles.optionRow, selected && styles.optionRowSelected]}
+                  onPress={() => handleSelect(item)}
+                  activeOpacity={0.7}
+                >
+                  <WText
+                    type={selected ? 'medium14' : 'regular14'}
+                    style={[styles.optionText, selected && styles.optionTextSelected]}
+                  >
+                    {item}
+                  </WText>
+                  {selected && <MaterialIcon name="check-circle" size={20} color="#008A45" />}
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </Animated.View>
+      </Modal>
+    </>
+  );
+};
+
+const OrdinationOption = ({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) => (
+  <TouchableOpacity onPress={onPress} style={styles.ordainedOption} activeOpacity={0.7}>
+    <View style={[styles.checkbox, active && styles.checkboxActive]}>
+      {active && <MaterialIcon name="check" size={12} color="#FFF" />}
+    </View>
+    <WText type="medium13" style={[styles.ordainedText, active && styles.ordainedTextActive]}>{label}</WText>
+  </TouchableOpacity>
 );
 
+// ── Styles ────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  container: {
-    flex: 1,
-  },
+  safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
-  backButton: {
-    padding: 8,
-  },
+  backButton: { padding: 8 },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
     color: '#008A45',
     textTransform: 'uppercase',
+    letterSpacing: 1.2,
   },
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 40,
-  },
+
+  scrollContent: { padding: 16, paddingBottom: 48, backgroundColor: '#F7F9F7' },
+
   avatarSection: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
     position: 'relative',
     alignSelf: 'center',
   },
   avatarContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 2,
-    borderColor: '#F3F4F6',
-    padding: 4,
-  },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
+    width: 88,
+    height: 88,
     borderRadius: 44,
+    borderWidth: 3,
+    borderColor: '#008A45',
+    overflow: 'hidden',
+    backgroundColor: '#FFF',
+    alignItems: 'center', justifyContent: 'center'
   },
+  avatarImage: { width: '90%', height: '90%' },
   cameraButton: {
     position: 'absolute',
     bottom: 0,
-    right: -10,
+    right: -4,
     backgroundColor: '#FFFFFF',
-    padding: 8,
+    padding: 7,
     borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 3,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderWidth: 1.5,
+    borderColor: '#008A45',
   },
-  formContainer: {
-    marginBottom: 32,
+
+  formContainer: { gap: 0 },
+
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+    gap: 8,
   },
-  fieldContainer: {
-    marginBottom: 24,
+  sectionTitleBar: {
+    width: 3,
+    height: 14,
+    backgroundColor: '#008A45',
+    borderRadius: 2,
   },
+  sectionTitleText: {
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+
+  fieldCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  selectCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === 'ios' ? 16 : 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  fieldIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#F0FDF4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  fieldContent: { flex: 1 },
   fieldLabel: {
     color: '#9CA3AF',
     textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  inputBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    paddingBottom: 8,
+    letterSpacing: 0.1,
+    marginBottom: 0,
   },
   textInput: {
     ...Style.textFontSize12,
@@ -327,44 +743,48 @@ const styles = StyleSheet.create({
     ...Style.fontRegular,
     color: '#0f1011ff',
     padding: 0,
+    paddingVertical: Platform.OS === 'ios' ? 2 : 0,
   },
-  pickerBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    marginLeft: -16,
-    marginRight: -16,
+
+  selectValue: {
+    flex: 1,
+    color: '#1F2937',
+    fontSize: 14,
+    fontWeight: '500',
   },
-  picker: {
-    height: 40,
-    width: '100%',
+  selectPlaceholder: {
+    color: '#9CA3AF',
   },
-  ordainedSection: {
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    marginBottom: 24,
+  datePlaceholder: {
+    color: '#C4C9D4',
+    fontSize: 12,
   },
-  sectionLabel: {
+
+  ordainedCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+    marginTop: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  ordainedCardTitle: {
     color: '#9CA3AF',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  ordainedRow: {
-    flexDirection: 'row',
-    gap: 24,
-    marginBottom: 16,
-  },
-  ordainedOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 24,
-  },
+  ordainedRow: { flexDirection: 'row', gap: 24, marginBottom: 4 },
+  ordainedOption: { flexDirection: 'row', alignItems: 'center' },
   checkbox: {
-    width: 20,
-    height: 20,
+    width: 18,
+    height: 18,
     borderRadius: 6,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: '#D1D5DB',
     alignItems: 'center',
     justifyContent: 'center',
@@ -373,20 +793,16 @@ const styles = StyleSheet.create({
   checkboxActive: {
     backgroundColor: '#008A45',
     borderColor: '#008A45',
-    borderWidth: 0,
   },
-  ordainedText: {
-    color: '#6B7280',
-  },
-  ordainedTextActive: {
-    color: '#008A45',
-  },
+  ordainedText: { color: '#6B7280' },
+  ordainedTextActive: { color: '#008A45', fontWeight: 'bold' },
   ordainedDetails: {
-    paddingLeft: 16,
-    borderLeftWidth: 2,
-    borderLeftColor: 'rgba(0, 138, 69, 0.1)',
-    marginTop: 8,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
   },
+
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -395,28 +811,27 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#FEE2E2',
-    marginBottom: 24,
+    marginBottom: 16,
+    marginTop: 4,
   },
-  errorText: {
-    color: '#DC2626',
-    marginLeft: 8,
-    flex: 1,
-  },
-  promotionSection: {
-    marginBottom: 24,
-  },
-  promotionBox: {
-    backgroundColor: 'rgba(232, 245, 233, 0.5)',
-    padding: 12,
-    borderRadius: 12,
+  errorText: { color: '#DC2626', marginLeft: 8, flex: 1 },
+
+  promotionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 138, 69, 0.04)',
+    padding: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0, 138, 69, 0.2)',
-    borderStyle: 'solid',
+    borderColor: 'rgba(0, 138, 69, 0.1)',
+    marginBottom: 20,
+    marginTop: 10,
+    gap: 12,
   },
-  promotionBoxText: {
-    color: '#008A45',
-    textTransform: 'uppercase',
-  },
+  promotionTextContainer: { flex: 1 },
+  promotionLabel: { color: '#008A45', textTransform: 'uppercase', opacity: 0.6 },
+  promotionValue: { color: '#008A45', fontWeight: 'bold', marginTop: 2 },
+
   saveButton: {
     backgroundColor: '#008A45',
     paddingVertical: 16,
@@ -427,11 +842,58 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    marginTop: 12,
   },
-  saveButtonText: {
-    color: '#FFFFFF',
-    letterSpacing: 2,
-  }
+  saveButtonText: { color: '#FFFFFF', letterSpacing: 2, fontWeight: 'bold' },
+
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+  modalSheet: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+    shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 20,
+  },
+  sheetHandle: { width: 40, height: 4, backgroundColor: '#E5E7EB', borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 4 },
+  sheetHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+  },
+  sheetTitle: { color: '#1F2937', letterSpacing: 0.3 },
+  sheetCloseBtn: { padding: 4 },
+  sheetList: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 },
+  optionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 14, borderRadius: 12, marginBottom: 4 },
+  optionRowSelected: { backgroundColor: '#F0FDF4' },
+  optionText: { color: '#4B5563' },
+  optionTextSelected: { color: '#008A45' },
+});
+
+const dateStyles = StyleSheet.create({
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+  pickerContainer: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+  },
+  sheetHandle: { width: 40, height: 4, backgroundColor: '#E5E7EB', borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 8 },
+  pickerHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+  },
+  cancelBtn: { padding: 8 },
+  cancelText: { color: '#6B7280' },
+  pickerTitle: { color: '#1F2937', fontWeight: 'bold' },
+  doneBtn: { padding: 8 },
+  doneText: { color: '#008A45', fontWeight: 'bold' },
+  wheelsRow: { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 16 },
+  column: { flex: 1, alignItems: 'center' },
+  columnLabel: { color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 1 },
+  columnMask: { height: ITEM_H * 3, width: '100%', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  highlightBar: { position: 'absolute', height: ITEM_H, left: 8, right: 8, backgroundColor: '#F0FDF4', borderRadius: 10 },
+  columnScroll: { width: '100%' },
+  columnItem: { height: ITEM_H, alignItems: 'center', justifyContent: 'center' },
+  columnItemText: { color: '#9CA3AF' },
+  columnItemTextSelected: { color: '#008A45', fontWeight: 'bold' },
+  wheelDivider: { width: 1, height: ITEM_H * 2, backgroundColor: '#F3F4F6', marginTop: ITEM_H / 2 },
 });
 
 export default AddMemberScreen;

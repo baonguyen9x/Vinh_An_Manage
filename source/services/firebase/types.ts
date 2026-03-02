@@ -30,6 +30,7 @@ export interface FirestoreMember {
 
 export interface FirestoreApprovalRequest {
     id: string;
+    uid?: string | null;            // UID của user đang được cập nhật (null nếu tạo mới)
     memberData: Omit<FirestoreMember, 'id' | 'createdAt' | 'updatedAt'>;
     requestedBy: string;            // UID người gửi
     requestedByName: string;

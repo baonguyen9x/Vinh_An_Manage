@@ -49,6 +49,28 @@ export class MemberService {
         return ref.id;
     }
 
+    // ─── Tạo nhanh member (chỉ thông tin cơ bản) ──────────────────
+    static async createQuick(
+        fullName: string,
+        email: string,
+        dharmaName: string
+    ): Promise<string> {
+        const ref = await firestore().collection(COLLECTION).add({
+            fullName,
+            email,
+            dharmaName,
+            gender: 'Nam', // Default
+            status: 'active',
+            position: '',
+            department: '',
+            role: '',
+            rank: '',
+            createdAt: firestore.FieldValue.serverTimestamp(),
+            updatedAt: firestore.FieldValue.serverTimestamp(),
+        });
+        return ref.id;
+    }
+
     // ─── Tìm kiếm theo tên hoặc pháp danh ───────────────────────
     static async search(query: string): Promise<FirestoreMember[]> {
         // Firestore không hỗ trợ full-text search — lấy all rồi filter client-side

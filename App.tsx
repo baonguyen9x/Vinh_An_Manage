@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, View, StyleSheet, StatusBar, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, StatusBar } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Screen, Member, ApprovalRequest } from './types';
 import SplashScreen from './source/Screens/SplashScreen';
 import LoginScreen from './source/Screens/LoginScreen';
@@ -12,8 +13,10 @@ import FamilyTreeScreen from './source/Screens/FamilyTreeScreen';
 import AddMemberScreen from './source/Screens/AddMemberScreen';
 import ApprovalScreen from './source/Screens/ApprovalScreen';
 import { ApprovalService, MemberService } from './source/services/firebase';
+import Languages from './source/Common/Languages';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import Toast, { ToastRef, ToastType } from './source/Common/Toast';
 
 const INITIAL_USER: Member = {
   id: '',
@@ -36,29 +39,28 @@ const INITIAL_USER: Member = {
 const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>(Screen.SPLASH);
   const [user, setUser] = useState<Member>(INITIAL_USER);
-
-  // Khởi tạo danh sách yêu cầu phê duyệt trống
   const [approvals, setApprovals] = useState<ApprovalRequest[]>([]);
+  const [addMemberInitialData, setAddMemberInitialData] = useState<any>(null);
+  const toastRef = useRef<ToastRef>(null);
+
+  const showToast = (message: string, type: ToastType = 'success') => {
+    toastRef.current?.show(message, type);
+  };
 
   useEffect(() => {
     if (currentScreen !== Screen.SPLASH) return;
 
     const handleSplash = async () => {
-      // Hiển thị splash tối thiểu 1.5s
       await new Promise(resolve => setTimeout(resolve, 1500));
-
       try {
         const firebaseUser = auth().currentUser;
-        console.log('Firebase Auth Status:', firebaseUser ? `Logged in as ${firebaseUser.email}` : 'Not logged in');
-
         if (firebaseUser) {
-          // Đã login trước đó → load thông tin từ Firestore
           const memberDoc = await firestore().collection('members').doc(firebaseUser.uid).get();
           const data = memberDoc.data();
           setUser({
             ...INITIAL_USER,
             uid: firebaseUser.uid,
-            fullName: data?.fullName || firebaseUser.displayName || 'Thành viên',
+            fullName: data?.fullName || firebaseUser.displayName || Languages.get('common.role_member'),
             email: firebaseUser.email || '',
             avatar: data?.avatar || INITIAL_USER.avatar,
             isAdmin: data?.isAdmin || false,
@@ -82,17 +84,26 @@ const App: React.FC = () => {
         setCurrentScreen(Screen.LOGIN);
       }
     };
-
     handleSplash();
   }, [currentScreen]);
 
-  const navigate = (screen: Screen) => setCurrentScreen(screen);
+  const navigate = (screen: Screen) => {
+    if (screen !== Screen.ADD_MEMBER) {
+      setAddMemberInitialData(null);
+    }
+    setCurrentScreen(screen);
+  };
+
+  const navigateToAddMember = (initialData?: any) => {
+    setAddMemberInitialData(initialData);
+    setCurrentScreen(Screen.ADD_MEMBER);
+  };
 
   const handleLoginSuccess = (isAdmin: boolean, uid: string) => {
     setUser({
       ...INITIAL_USER,
       uid: uid,
-      fullName: isAdmin ? 'Admin Vĩnh An' : 'Thành viên',
+      fullName: isAdmin ? Languages.get('common.role_admin') : Languages.get('common.role_member'),
       isAdmin: isAdmin
     });
     navigate(Screen.HOME);
@@ -114,23 +125,27 @@ const App: React.FC = () => {
       if (!user.uid) return;
 
       if (user.isAdmin) {
-        // Admin: Thêm trực tiếp vào Members collection
-        await MemberService.create(memberData);
-        Alert.alert("Thành công", "Đã thêm thành viên trực tiếp vào gia phả.");
+        if (memberData.uid) {
+          const { id, uid, ...updateData } = memberData;
+          await MemberService.update(memberData.uid, updateData);
+          showToast(Languages.get('screen.family_tree.assign_success'));
+        } else {
+          await MemberService.create(memberData);
+          showToast(Languages.get('screen.add_member.msg_admin_success'));
+        }
       } else {
-        // Member: Gửi yêu cầu qua Approvals collection
         await ApprovalService.submitRequest(
           memberData,
           user.uid,
-          user.fullName
+          user.fullName,
+          memberData.uid
         );
-        Alert.alert("Gửi yêu cầu", "Yêu cầu đã được gửi. Vui lòng đợi quản trị viên phê duyệt.");
+        showToast(Languages.get('screen.add_member.msg_member_success'));
       }
-
       navigate(Screen.FAMILY_TREE);
     } catch (error) {
-      console.error(error, "handleAddMemberRequest error");
-      Alert.alert("Lỗi", "Không thể thực hiện yêu cầu lúc này. Vui lòng thử lại sau.");
+      console.error(error);
+      showToast(Languages.get('system.msg.error_general'), 'error');
     }
   };
 
@@ -143,24 +158,23 @@ const App: React.FC = () => {
       case Screen.PROFILE: return <ProfileScreen user={user} onBack={() => navigate(Screen.HOME)} onEdit={() => navigate(Screen.EDIT_PROFILE)} onLogout={handleLogout} />;
       case Screen.EDIT_PROFILE: return <EditProfileScreen user={user} onBack={() => navigate(Screen.PROFILE)} onUpdate={(u) => { setUser(u); navigate(Screen.PROFILE); }} />;
       case Screen.MEMBER_LIST: return <MemberListScreen onBack={() => navigate(Screen.HOME)} currentUid={user.uid} />;
-      case Screen.FAMILY_TREE: return <FamilyTreeScreen onBack={() => navigate(Screen.HOME)} onAdd={() => navigate(Screen.ADD_MEMBER)} />;
-      case Screen.ADD_MEMBER: return <AddMemberScreen onBack={() => navigate(Screen.FAMILY_TREE)} onSave={handleAddMemberRequest} isAdmin={user.isAdmin} />;
-      case Screen.APPROVAL: return <ApprovalScreen onBack={() => navigate(Screen.HOME)} />;
+      case Screen.FAMILY_TREE: return <FamilyTreeScreen onBack={() => navigate(Screen.HOME)} onAdd={navigateToAddMember} isAdmin={user.isAdmin} user={user} showToast={showToast} />;
+      case Screen.ADD_MEMBER: return <AddMemberScreen onBack={() => navigate(Screen.FAMILY_TREE)} onSave={handleAddMemberRequest} isAdmin={user.isAdmin} initialData={addMemberInitialData} />;
+      case Screen.APPROVAL: return <ApprovalScreen onBack={() => navigate(Screen.HOME)} showToast={showToast} />;
       default: return <HomeScreen user={user} onNavigate={navigate} />;
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar
-        backgroundColor="#FFFFFF"
-        barStyle="dark-content"
-        translucent={false}
-      />
-      <View style={styles.content}>
-        {renderContent()}
+    <SafeAreaProvider>
+      <View style={styles.container}>
+        <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" translucent={false} />
+        <View style={styles.content}>
+          {renderContent()}
+        </View>
+        <Toast ref={toastRef} />
       </View>
-    </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 

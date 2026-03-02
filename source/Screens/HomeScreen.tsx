@@ -5,6 +5,7 @@ import { Screen, Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
 import Constants from '../Common/Constants';
 import Languages from '../Common/Languages';
+import WConfirmModal from '../Common/WConfirmModal';
 
 interface Props {
   user: Member;
@@ -13,6 +14,13 @@ interface Props {
 }
 
 const HomeScreen: React.FC<Props> = ({ user, onNavigate, pendingApprovals = 0 }) => {
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(false);
+    onNavigate(Screen.LOGIN);
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Header Section */}
@@ -69,7 +77,7 @@ const HomeScreen: React.FC<Props> = ({ user, onNavigate, pendingApprovals = 0 })
         {/* Logout Button */}
         <View style={styles.logoutContainer}>
           <TouchableOpacity
-            onPress={() => onNavigate(Screen.LOGIN)}
+            onPress={() => setShowLogoutConfirm(true)}
             style={styles.logoutButton}
             activeOpacity={0.8}
           >
@@ -78,6 +86,17 @@ const HomeScreen: React.FC<Props> = ({ user, onNavigate, pendingApprovals = 0 })
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Logout Confirm Modal */}
+      <WConfirmModal
+        visible={showLogoutConfirm}
+        type="logout"
+        title={Languages.get('screen.home.logout_title')}
+        message={Languages.get('screen.home.logout_msg')}
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        confirmText={Languages.get('screen.home.btn_logout')}
+      />
 
       {/* Footer */}
       <View style={styles.footer}>
