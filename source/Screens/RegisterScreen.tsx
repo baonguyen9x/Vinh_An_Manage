@@ -1,20 +1,53 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import WText from '../Common/WText';
 import { GDPT_LOGO, MaterialIcon } from '../Common/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthService } from '../services/firebase';
 
 interface Props {
   onBack: () => void;
-  onRegister: () => void;
+  onRegisterSuccess: (isAdmin: boolean, uid: string) => void;
 }
 
-const RegisterScreen: React.FC<Props> = ({ onBack, onRegister }) => {
-  const [username, setUsername] = useState('');
+const RegisterScreen: React.FC<Props> = ({ onBack, onRegisterSuccess }) => {
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const isFormValid = username.length > 0 && password.length > 0 && password === confirmPassword;
+  const isFormValid = fullName.trim().length > 0 &&
+    email.trim().length > 0 &&
+    password.length >= 6 &&
+    password === confirmPassword;
+
+  const handleRegister = async () => {
+    if (!isFormValid) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const user = await AuthService.register(email.trim(), password, fullName.trim());
+      // Khi đăng ký thành công, user tự động đăng nhập với role user (isAdmin = false)
+      onRegisterSuccess(false, user.uid);
+    } catch (e: any) {
+      console.error(e);
+      if (e.code === 'auth/email-already-in-use') {
+        setError('Email này đã được sử dụng');
+      } else if (e.code === 'auth/invalid-email') {
+        setError('Email không hợp lệ');
+      } else if (e.code === 'auth/weak-password') {
+        setError('Mật khẩu phải từ 6 ký tự trở lên');
+      } else {
+        setError('Đã có lỗi xảy ra. Vui lòng thử lại sau.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -34,11 +67,23 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegister }) => {
               <MaterialIcon name="person-outline" color="#9CA3AF" size={20} style={styles.icon} />
               <TextInput
                 style={styles.input}
-                placeholder="Nhập tên đăng nhập"
+                placeholder="Nhập họ và tên"
                 placeholderTextColor="#9CA3AF"
-                value={username}
-                onChangeText={setUsername}
+                value={fullName}
+                onChangeText={setFullName}
+              />
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <MaterialIcon name="mail-outline" color="#9CA3AF" size={20} style={styles.icon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Nhập email"
+                placeholderTextColor="#9CA3AF"
+                value={email}
+                onChangeText={setEmail}
                 autoCapitalize="none"
+                keyboardType="email-address"
               />
             </View>
 
@@ -46,7 +91,7 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegister }) => {
               <MaterialIcon name="lock-outline" color="#9CA3AF" size={20} style={styles.icon} />
               <TextInput
                 style={styles.input}
-                placeholder="Nhập mật khẩu"
+                placeholder="Nhập mật khẩu (>= 6 ký tự)"
                 placeholderTextColor="#9CA3AF"
                 value={password}
                 onChangeText={setPassword}
@@ -66,16 +111,24 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegister }) => {
               />
             </View>
 
+            {!!error && (
+              <WText type="regular12" style={styles.errorText}>{error}</WText>
+            )}
+
             <TouchableOpacity
-              onPress={isFormValid ? onRegister : undefined}
+              onPress={handleRegister}
               style={[
                 styles.registerButton,
-                isFormValid ? styles.registerButtonActive : styles.registerButtonDisabled
+                isFormValid && !loading ? styles.registerButtonActive : styles.registerButtonDisabled
               ]}
-              disabled={!isFormValid}
+              disabled={!isFormValid || loading}
               activeOpacity={0.8}
             >
-              <WText type="medium16" style={styles.registerButtonText}>ĐĂNG KÝ</WText>
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <WText type="medium16" style={styles.registerButtonText}>ĐĂNG KÝ</WText>
+              )}
             </TouchableOpacity>
 
             <View style={styles.loginContainer}>
@@ -161,6 +214,11 @@ const styles = StyleSheet.create({
   },
   loginText: {
     color: '#008A45',
+  },
+  errorText: {
+    color: '#EF4444',
+    marginTop: 8,
+    textAlign: 'center',
   }
 });
 

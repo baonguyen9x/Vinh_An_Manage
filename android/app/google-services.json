@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "579253769852",
+    "project_id": "vinhan-6d9ac",
+    "storage_bucket": "vinhan-6d9ac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:579253769852:android:acab00d6a2ce6f6ead9bf9",
+        "android_client_info": {
+          "package_name": "com.vinhan.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0dbbwG7WfydtPP-BUYAaQV7jJZH7Wnl4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,35 +1,44 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Image, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, Image, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import WText from '../Common/WText';
 import { MaterialIcon } from '../Common/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthService } from '../services/firebase';
 
 interface Props {
-  onLoginSuccess: (isAdmin: boolean) => void;
+  onLoginSuccess: (isAdmin: boolean, uid: string) => void;
   onRegister: () => void;
 }
 
 const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
-  const [user, setUser] = useState('demo123');
-  const [pass, setPass] = useState('demo123');
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Tài khoản demo123 được nâng cấp làm Admin
-    if (user === 'demo123' && pass === 'demo123') {
-      setError('');
-      onLoginSuccess(true); // Trạng thái Admin = true
+  const handleLogin = async () => {
+    if (!email.trim() || !pass.trim()) {
+      setError('Vui lòng nhập email và mật khẩu');
+      return;
     }
-    // Tài khoản test1234 là Member
-    else if (user === 'test1234' && pass === 'test1234') {
-      setError('');
-      onLoginSuccess(false); // Trạng thái Admin = false
-    }
-    else if (user === 'nguyenvanan' && pass === '123456') {
-      setError('');
-      onLoginSuccess(false); // Trạng thái Admin = false
-    } else {
-      setError('Tên đăng nhập hoặc mật khẩu không đúng');
+    setLoading(true);
+    setError('');
+    try {
+      const user = await AuthService.login(email.trim(), pass);
+      const isAdmin = await AuthService.isAdmin(user.uid);
+      onLoginSuccess(isAdmin, user.uid);
+    } catch (e: any) {
+      if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+        setError('Email hoặc mật khẩu không đúng');
+      } else if (e.code === 'auth/invalid-email') {
+        setError('Email không hợp lệ');
+      } else if (e.code === 'auth/too-many-requests') {
+        setError('Quá nhiều lần thử. Vui lòng thử lại sau');
+      } else {
+        setError('Đã có lỗi xảy ra. Vui lòng thử lại');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,14 +66,17 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
 
           <View style={styles.formContainer}>
             <View style={styles.inputGroup}>
-              <WText type="medium10" style={styles.inputLabel}>Tên đăng nhập</WText>
+              <WText type="medium10" style={styles.inputLabel}>Email</WText>
               <View style={styles.inputWrapper}>
-                <MaterialIcon name="person" color="#008A45" size={20} />
+                <MaterialIcon name="email" color="#008A45" size={20} />
                 <TextInput
                   style={styles.input}
-                  value={user}
-                  onChangeText={(text) => { setUser(text); setError(''); }}
+                  value={email}
+                  onChangeText={(text) => { setEmail(text); setError(''); }}
                   autoCapitalize="none"
+                  keyboardType="email-address"
+                  placeholder="example@email.com"
+                  placeholderTextColor="#9CA3AF"
                 />
               </View>
             </View>
@@ -88,10 +100,14 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
 
             <TouchableOpacity
               onPress={handleLogin}
-              style={styles.loginButton}
+              style={[styles.loginButton, loading && { opacity: 0.7 }]}
               activeOpacity={0.8}
+              disabled={loading}
             >
-              <WText type="medium14" style={styles.loginButtonText}>ĐĂNG NHẬP</WText>
+              {loading
+                ? <ActivityIndicator color="#FFFFFF" />
+                : <WText type="medium14" style={styles.loginButtonText}>ĐĂNG NHẬP</WText>
+              }
             </TouchableOpacity>
 
             <View style={styles.registerContainer}>

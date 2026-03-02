@@ -1,17 +1,72 @@
-import React from 'react';
-import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import WText from '../Common/WText';
-import { ApprovalRequest } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ApprovalService, AuthService } from '../services/firebase';
+import { FirestoreApprovalRequest } from '../services/firebase/types';
 
 interface Props {
-  requests: ApprovalRequest[];
   onBack: () => void;
-  onAction: (id: string) => void;
 }
 
-const ApprovalScreen: React.FC<Props> = ({ requests, onBack, onAction }) => {
+const ApprovalScreen: React.FC<Props> = ({ onBack }) => {
+  const [requests, setRequests] = useState<FirestoreApprovalRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Lắng nghe danh sách yêu cầu phê duyệt real-time
+    const unsubscribe = ApprovalService.subscribePending((data) => {
+      setRequests(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleApprove = async (id: string) => {
+    const admin = AuthService.getCurrentUser();
+    if (!admin) return;
+
+    setProcessingId(id);
+    try {
+      await ApprovalService.approve(id, admin.uid);
+      Alert.alert("Thành công", "Đã phê duyệt tài khoản.");
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Lỗi", "Không thể phê duyệt yêu cầu.");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    const admin = AuthService.getCurrentUser();
+    if (!admin) return;
+
+    Alert.alert(
+      "Từ chối",
+      "Bạn có chắc chắn muốn từ chối yêu cầu này?",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Từ chối",
+          style: "destructive",
+          onPress: async () => {
+            setProcessingId(id);
+            try {
+              await ApprovalService.reject(id, admin.uid);
+            } catch (error) {
+              console.error(error);
+            } finally {
+              setProcessingId(null);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -19,65 +74,68 @@ const ApprovalScreen: React.FC<Props> = ({ requests, onBack, onAction }) => {
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <MaterialIcon name="arrow-back" size={20} color="#008A45" />
           </TouchableOpacity>
-          <WText type="medium18" style={styles.headerTitle}>Phê duyệt yêu cầu</WText>
+          <WText type="medium18" style={styles.headerTitle}>Phê duyệt thành viên</WText>
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {requests.length === 0 ? (
-            <View style={styles.emptyStateContainer}>
-              <MaterialIcon name="task-alt" size={64} color="#D1D5DB" />
-              <WText type="medium14" style={styles.emptyStateText}>Tất cả đã được xử lý</WText>
-            </View>
-          ) : (
-            requests.map(req => (
-              <View key={req.id} style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <View style={styles.userInfoContainer}>
-                    <View style={styles.avatarPlaceholder}>
-                      <MaterialIcon name="person-add" size={24} color="#008A45" />
-                    </View>
-                    <View style={styles.userNameContainer}>
-                      <WText type="medium14" style={styles.fullNameText}>{req.memberData.fullName}</WText>
-                      <WText type="medium11" style={styles.dharmaNameText}>PD: {req.memberData.dharmaName}</WText>
-                    </View>
-                  </View>
-                  <WText type="medium9" style={styles.dateText}>{req.requestDate}</WText>
-                </View>
-
-                <View style={styles.infoGrid}>
-                  <View style={styles.infoBox}>
-                    <WText type="medium10" style={styles.infoLabel}>Ngành: <WText type="regular10" style={styles.infoValue}>{req.memberData.department}</WText></WText>
-                  </View>
-                  <View style={styles.infoBox}>
-                    <WText type="medium10" style={styles.infoLabel}>Chức vụ: <WText type="regular10" style={styles.infoValue}>{req.memberData.position}</WText></WText>
-                  </View>
-                </View>
-
-                <View style={styles.actionButtonsContainer}>
-                  <TouchableOpacity
-                    onPress={() => onAction(req.id)}
-                    style={styles.rejectButton}
-                    activeOpacity={0.8}
-                  >
-                    <WText type="medium11" style={styles.rejectButtonText}>Từ chối</WText>
-                  </TouchableOpacity>
-                  <View style={{ width: 8 }} />
-                  <TouchableOpacity
-                    onPress={() => onAction(req.id)}
-                    style={styles.approveButton}
-                    activeOpacity={0.8}
-                  >
-                    <WText type="medium11" style={styles.approveButtonText}>Phê duyệt</WText>
-                  </TouchableOpacity>
-                </View>
+        {loading ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color="#008A45" />
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {requests.length === 0 ? (
+              <View style={styles.emptyStateContainer}>
+                <MaterialIcon name="task-alt" size={64} color="#D1D5DB" />
+                <WText type="medium14" style={styles.emptyStateText}>Tất cả đã được xử lý</WText>
               </View>
-            ))
-          )}
-        </ScrollView>
+            ) : (
+              requests.map(req => (
+                <View key={req.id} style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <View style={styles.userInfoContainer}>
+                      <View style={styles.avatarPlaceholder}>
+                        <MaterialIcon name="person-add" size={24} color="#008A45" />
+                      </View>
+                      <View style={styles.userNameContainer}>
+                        <WText type="medium14" style={styles.fullNameText}>{req.memberData.fullName}</WText>
+                        <WText type="medium11" style={styles.emailText}>{req.memberData.email}</WText>
+                      </View>
+                    </View>
+                    <WText type="medium9" style={styles.dateText}>
+                      {req.createdAt?.toDate ? req.createdAt.toDate().toLocaleDateString('vi-VN') : 'Mới'}
+                    </WText>
+                  </View>
+
+                  <View style={styles.actionButtonsContainer}>
+                    <TouchableOpacity
+                      onPress={() => handleReject(req.id)}
+                      style={styles.rejectButton}
+                      disabled={!!processingId}
+                    >
+                      <WText type="medium11" style={styles.rejectButtonText}>Từ chối</WText>
+                    </TouchableOpacity>
+                    <View style={{ width: 8 }} />
+                    <TouchableOpacity
+                      onPress={() => handleApprove(req.id)}
+                      style={styles.approveButton}
+                      disabled={!!processingId}
+                    >
+                      {processingId === req.id ? (
+                        <ActivityIndicator color="#FFF" size="small" />
+                      ) : (
+                        <WText type="medium11" style={styles.approveButtonText}>Phê duyệt</WText>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))
+            )}
+          </ScrollView>
+        )}
 
         <View style={styles.footerContainer}>
-          <WText type="medium9" style={styles.footerText}>Hệ thống bảo mật nội bộ</WText>
+          <WText type="medium9" style={styles.footerText}>Quản trị hệ thống Vĩnh An</WText>
         </View>
       </View>
     </SafeAreaView>
@@ -122,6 +180,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     flexGrow: 1,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyStateContainer: {
     alignItems: 'center',
@@ -173,6 +236,10 @@ const styles = StyleSheet.create({
     color: '#1A3A5F',
     textTransform: 'uppercase',
     marginBottom: 2,
+  },
+  emailText: {
+    color: '#008A45',
+    fontSize: 11,
   },
   dharmaNameText: {
     color: '#008A45',

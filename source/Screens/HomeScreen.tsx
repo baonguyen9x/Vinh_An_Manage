@@ -3,6 +3,7 @@ import { View, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-nat
 import WText from '../Common/WText';
 import { Screen, Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
+import Constants from '../Common/Constants';
 
 interface Props {
   user: Member;
@@ -124,8 +125,8 @@ const styles = StyleSheet.create({
     minHeight: '100%',
   },
   header: {
-    paddingTop: 64,
-    paddingBottom: 48,
+    paddingTop: Constants.MeasureSize(Constants.IS_IOS ? 40 : 80),
+    paddingBottom: Constants.MeasureSize(Constants.IS_IOS ? 20 : 48),
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
   },

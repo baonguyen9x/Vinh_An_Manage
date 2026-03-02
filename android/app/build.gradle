@@ -1,7 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-// apply plugin: "com.google.gms.google-services" // TODO: Thêm lại sau khi tạo Firebase project
+apply plugin: "com.google.gms.google-services"
 
 react {
     autolinkLibrariesWithApp()
@@ -26,9 +26,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.vinhan"
+    namespace "com.vinhan.app"
     defaultConfig {
-        applicationId "com.vinhan.dev"
+        applicationId "com.vinhan.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
     }
@@ -63,7 +63,7 @@ android {
     productFlavors {
         dev {
             dimension "environment"
-            applicationId "com.vinhan.dev"
+            applicationId "com.vinhan.app"
             resValue "string", "app_name", "VinhAn-dev"
             versionCode 1
             versionName "1.0.0"

@@ -14,6 +14,7 @@ export enum Screen {
 
 export interface Member {
   id: string;
+  uid?: string;
   fullName: string;
   dharmaName: string; // Pháp danh
   gender: 'Nam' | 'Nữ';
@@ -29,7 +30,7 @@ export interface Member {
   status: 'active' | 'inactive' | 'on_leave';
   isAdmin?: boolean; // Quyền quản trị
   // Thông tin thọ cấp
-  isOrdained?: boolean; 
+  isOrdained?: boolean;
   ordinationDate?: string;
   ordinationLevel?: 'Cấp Tập' | 'Cấp Tín' | 'Cấp Tấn' | 'Cấp Dũng' | '';
 }

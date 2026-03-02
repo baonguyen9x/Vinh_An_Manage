@@ -1,4 +1,4 @@
-package com.vinhan
+package com.vinhan.app
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

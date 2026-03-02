@@ -1,4 +1,4 @@
-package com.vinhan
+package com.vinhan.app
 
 import android.app.Application
 import com.facebook.react.PackageList
