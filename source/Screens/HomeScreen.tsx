@@ -4,6 +4,7 @@ import WText from '../Common/WText';
 import { Screen, Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
 import Constants from '../Common/Constants';
+import Languages from '../Common/Languages';
 
 interface Props {
   user: Member;
@@ -23,10 +24,10 @@ const HomeScreen: React.FC<Props> = ({ user, onNavigate, pendingApprovals = 0 })
             resizeMode="contain"
           />
         </View>
-        <WText type="medium24" style={styles.titleText}>GĐPT VĨNH AN</WText>
+        <WText type="medium24" style={styles.titleText}>{Languages.get('screen.home.title')}</WText>
         {user.isAdmin && (
           <View style={styles.adminBadge}>
-            <WText type="medium9" style={styles.adminBadgeText}>Quản trị viên</WText>
+            <WText type="medium9" style={styles.adminBadgeText}>{Languages.get('screen.home.badge_admin')}</WText>
           </View>
         )}
         <View style={styles.divider} />
@@ -36,30 +37,30 @@ const HomeScreen: React.FC<Props> = ({ user, onNavigate, pendingApprovals = 0 })
       <View style={styles.menuContainer}>
         <MenuItem
           icon="assignment-ind"
-          title="Hồ sơ phật tử"
-          description="Thông tin cá nhân & sinh hoạt"
+          title={Languages.get('screen.home.menu_profile_title')}
+          description={Languages.get('screen.home.menu_profile_desc')}
           onClick={() => onNavigate(Screen.PROFILE)}
         />
 
         <MenuItem
           icon="groups"
-          title="Danh sách thành viên"
-          description="Tra cứu huynh trưởng & đoàn sinh"
+          title={Languages.get('screen.home.menu_members_title')}
+          description={Languages.get('screen.home.menu_members_desc')}
           onClick={() => onNavigate(Screen.MEMBER_LIST)}
         />
 
         <MenuItem
           icon="account-tree"
-          title="Hệ thống Gia Phả"
-          description="Sơ đồ tổ chức đơn vị"
+          title={Languages.get('screen.home.menu_family_tree_title')}
+          description={Languages.get('screen.home.menu_family_tree_desc')}
           onClick={() => onNavigate(Screen.FAMILY_TREE)}
         />
 
         {user.isAdmin && (
           <MenuItem
             icon="verified-user"
-            title="Phê duyệt"
-            description="Duyệt yêu cầu thêm thành viên"
+            title={Languages.get('screen.home.menu_approval_title')}
+            description={Languages.get('screen.home.menu_approval_desc')}
             onClick={() => onNavigate(Screen.APPROVAL)}
             badge={pendingApprovals > 0 ? pendingApprovals : undefined}
           />
@@ -73,14 +74,14 @@ const HomeScreen: React.FC<Props> = ({ user, onNavigate, pendingApprovals = 0 })
             activeOpacity={0.8}
           >
             <MaterialIcon name="logout" size={20} color="#DC2626" />
-            <WText type="medium14" style={styles.logoutText}>Đăng xuất</WText>
+            <WText type="medium14" style={styles.logoutText}>{Languages.get('screen.home.btn_logout')}</WText>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Footer */}
       <View style={styles.footer}>
-        <WText type="medium10" style={styles.footerText}>Management System v1.0.0</WText>
+        <WText type="medium10" style={styles.footerText}>{Languages.get('screen.home.footer')}</WText>
       </View>
     </ScrollView>
   );

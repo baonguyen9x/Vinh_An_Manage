@@ -16,7 +16,7 @@ const SplashScreen: React.FC = () => {
         </View>
       </View>
       <WText type="medium24" style={styles.titleText}>
-        {Languages.get('splash.title')}
+        {Languages.get('screen.splash.title')}
       </WText>
     </View>
   );

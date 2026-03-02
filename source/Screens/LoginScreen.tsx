@@ -4,6 +4,7 @@ import WText from '../Common/WText';
 import { MaterialIcon } from '../Common/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthService } from '../services/firebase';
+import Languages from '../Common/Languages';
 
 interface Props {
   onLoginSuccess: (isAdmin: boolean, uid: string) => void;
@@ -11,14 +12,14 @@ interface Props {
 }
 
 const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
-  const [email, setEmail] = useState('');
-  const [pass, setPass] = useState('');
+  const [email, setEmail] = useState('anhno3qt@gmail.com');
+  const [pass, setPass] = useState('123456');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email.trim() || !pass.trim()) {
-      setError('Vui lòng nhập email và mật khẩu');
+      setError(Languages.get('screen.login.error_empty'));
       return;
     }
     setLoading(true);
@@ -28,14 +29,19 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
       const isAdmin = await AuthService.isAdmin(user.uid);
       onLoginSuccess(isAdmin, user.uid);
     } catch (e: any) {
+      console.error('[Login Error] code:', e.code, '| message:', e.message);
       if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
-        setError('Email hoặc mật khẩu không đúng');
+        setError(Languages.get('screen.login.error_invalid_credential'));
       } else if (e.code === 'auth/invalid-email') {
-        setError('Email không hợp lệ');
+        setError(Languages.get('screen.login.error_invalid_email'));
       } else if (e.code === 'auth/too-many-requests') {
-        setError('Quá nhiều lần thử. Vui lòng thử lại sau');
+        setError(Languages.get('screen.login.error_too_many_requests'));
+      } else if (e.code === 'auth/user-disabled') {
+        setError(Languages.get('screen.login.error_user_disabled'));
+      } else if (e.code === 'auth/network-request-failed') {
+        setError(Languages.get('screen.login.error_network'));
       } else {
-        setError('Đã có lỗi xảy ra. Vui lòng thử lại');
+        setError(`Lỗi: ${e.code || e.message || 'Không xác định'}`);
       }
     } finally {
       setLoading(false);
@@ -60,13 +66,13 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
           </View>
 
           <View style={styles.titleContainer}>
-            <WText type="medium24" style={styles.titleText}>GĐPT Vĩnh An</WText>
-            <WText type="medium14" style={styles.subtitleText}>Tinh tấn - Hỷ xả</WText>
+            <WText type="medium24" style={styles.titleText}>{Languages.get('screen.login.app_name')}</WText>
+            <WText type="medium14" style={styles.subtitleText}>{Languages.get('screen.login.slogan')}</WText>
           </View>
 
           <View style={styles.formContainer}>
             <View style={styles.inputGroup}>
-              <WText type="medium10" style={styles.inputLabel}>Email</WText>
+              <WText type="medium10" style={styles.inputLabel}>{Languages.get('screen.login.label_email')}</WText>
               <View style={styles.inputWrapper}>
                 <MaterialIcon name="email" color="#008A45" size={20} />
                 <TextInput
@@ -75,14 +81,14 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
                   onChangeText={(text) => { setEmail(text); setError(''); }}
                   autoCapitalize="none"
                   keyboardType="email-address"
-                  placeholder="example@email.com"
+                  placeholder={Languages.get('screen.login.placeholder_email')}
                   placeholderTextColor="#9CA3AF"
                 />
               </View>
             </View>
 
             <View style={styles.inputGroup}>
-              <WText type="medium10" style={styles.inputLabel}>Mật khẩu</WText>
+              <WText type="medium10" style={styles.inputLabel}>{Languages.get('screen.login.label_password')}</WText>
               <View style={styles.inputWrapper}>
                 <MaterialIcon name="lock" color="#008A45" size={20} />
                 <TextInput
@@ -106,19 +112,19 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
             >
               {loading
                 ? <ActivityIndicator color="#FFFFFF" />
-                : <WText type="medium14" style={styles.loginButtonText}>ĐĂNG NHẬP</WText>
+                : <WText type="medium14" style={styles.loginButtonText}>{Languages.get('screen.login.btn_login')}</WText>
               }
             </TouchableOpacity>
 
             <View style={styles.registerContainer}>
               <TouchableOpacity onPress={onRegister}>
-                <WText type="medium12" style={styles.registerText}>Chưa có tài khoản? Đăng ký ngay</WText>
+                <WText type="medium12" style={styles.registerText}>{Languages.get('screen.login.register_hint')}</WText>
               </TouchableOpacity>
             </View>
           </View>
 
           <WText type="regular10" style={styles.versionText}>
-            Version v1.0.0
+            {Languages.get('screen.login.version')}
           </WText>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -229,7 +229,7 @@ const SelectField: React.FC<{ label: string, value: string, options: string[], o
         onValueChange={(itemValue) => onChange(itemValue)}
         style={styles.picker}
       >
-        <Picker.Item label="Chọn..." value="" color="#9CA3AF" />
+        <Picker.Item label="__" value="" color="#9CA3AF" />
         {options.map(opt => <Picker.Item key={opt} label={opt} value={opt} />)}
       </Picker>
     </View>

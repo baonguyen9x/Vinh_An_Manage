@@ -1,8 +1,11 @@
-import React from 'react';
-import { View, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Image, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import WText from '../Common/WText';
 import { Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
+import Constants from '../Common/Constants';
+import { MemberService, FirestoreMember } from '../services/firebase';
+import Languages from '../Common/Languages';
 
 interface Props {
   user: Member;
@@ -12,6 +15,32 @@ interface Props {
 }
 
 const ProfileScreen: React.FC<Props> = ({ user, onBack, onEdit, onLogout }) => {
+  const [profile, setProfile] = useState<FirestoreMember | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user.uid) {
+      setLoading(false);
+      return;
+    }
+    // Subscribe real-time từ Firestore
+    const unsubscribe = MemberService.subscribeOne(user.uid, (member) => {
+      setProfile(member);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [user.uid]);
+
+  const data = profile ?? user;
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#008A45" />
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
@@ -26,35 +55,40 @@ const ProfileScreen: React.FC<Props> = ({ user, onBack, onEdit, onLogout }) => {
 
         <View style={styles.avatarWrapper}>
           <View style={styles.avatarContainer}>
-            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            <Image
+              source={data.avatar ? { uri: data.avatar } : require('../Images/ic_user_default.png')}
+              style={styles.avatar}
+            />
           </View>
         </View>
       </View>
 
       <View style={styles.infoSection}>
-        <WText type="medium24" style={styles.fullName}>{user.fullName}</WText>
-        <WText type="medium14" style={styles.dharmaName}>{user.dharmaName}</WText>
+        <WText type="medium24" style={styles.fullName}>{data.fullName || '-'}</WText>
+        {!!data.dharmaName && (
+          <WText type="medium14" style={styles.dharmaName}>{data.dharmaName}</WText>
+        )}
 
         <View style={styles.statsContainer}>
-          <StatBox label="Chức vụ" value={user.role || user.position} />
+          <StatBox label={Languages.get('screen.profile.label_role')} value={(data as any).role || (data as any).position} />
           <View style={styles.statDivider} />
-          <StatBox label="Bậc học" value={user.rank} />
+          <StatBox label={Languages.get('screen.profile.label_rank')} value={(data as any).rank} />
           <View style={styles.statDivider} />
-          <StatBox label="Ngành" value={user.department} />
+          <StatBox label={Languages.get('screen.profile.label_department')} value={(data as any).department} />
         </View>
       </View>
 
       <View style={styles.detailsSection}>
-        <ProfileTile icon="face" label="Giới tính" value={user.gender} />
-        <ProfileTile icon="email" label="Email" value={user.email} />
-        <ProfileTile icon="phone" label="Số điện thoại" value={user.phone} />
-        <ProfileTile icon="calendar-today" label="NGÀY BẮT ĐẦU SINH HOẠT" value={user.joinDate} />
-        <ProfileTile icon="stars" label="Cấp bậc" value={user.promotionRank} highlight />
-        <ProfileTile icon="category" label="Phân loại" value={user.position} />
+        <ProfileTile icon="face" label={Languages.get('screen.profile.label_gender')} value={(data as any).gender} />
+        <ProfileTile icon="email" label={Languages.get('screen.profile.label_email')} value={data.email} />
+        <ProfileTile icon="phone" label={Languages.get('screen.profile.label_phone')} value={(data as any).phone} />
+        <ProfileTile icon="calendar-today" label={Languages.get('screen.profile.label_join_date')} value={(data as any).joinDate} />
+        <ProfileTile icon="stars" label={Languages.get('screen.profile.label_promotion_rank')} value={(data as any).promotionRank} highlight />
+        <ProfileTile icon="category" label={Languages.get('screen.profile.label_category')} value={(data as any).position} />
       </View>
 
       <View style={styles.footer}>
-        <WText type="medium10" style={styles.footerText}>Thông tin hồ sơ nội bộ GĐPT Vĩnh An</WText>
+        <WText type="regular10" style={styles.footerText}>{Languages.get('screen.profile.footer')}</WText>
       </View>
     </ScrollView>
   );
@@ -70,7 +104,7 @@ const StatBox = ({ label, value }: any) => (
 const ProfileTile = ({ icon, label, value, highlight }: any) => (
   <View style={[styles.tileContainer, highlight && styles.tileHighlight]}>
     <View style={[styles.tileIconContainer, highlight && styles.tileIconHighlight]}>
-      <MaterialIcon name={icon} size={22} color={highlight ? '#008A45' : '#008A45'} />
+      <MaterialIcon name={icon} size={22} color="#008A45" />
     </View>
     <View style={[styles.tileTextContainer, !highlight && styles.tileTextBorder]}>
       <WText type="medium10" style={styles.tileLabel}>{label}</WText>
@@ -80,6 +114,12 @@ const ProfileTile = ({ icon, label, value, highlight }: any) => (
 );
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -98,7 +138,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
     position: 'relative',
-    marginBottom: 64, // To give space for the overlapping avatar
+    marginBottom: 64,
   },
   headerButtons: {
     flexDirection: 'row',
@@ -107,9 +147,12 @@ const styles = StyleSheet.create({
     paddingTop: 48,
   },
   iconButton: {
+    height: Constants.MeasureSize(38),
+    width: Constants.MeasureSize(38),
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.2)',
-    padding: 8,
-    borderRadius: 20,
+    borderRadius: Constants.MeasureSize(30),
   },
   avatarWrapper: {
     position: 'absolute',
@@ -138,7 +181,8 @@ const styles = StyleSheet.create({
   },
   infoSection: {
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: Constants.MeasureSize(20),
+    paddingTop: Constants.MeasureSize(15),
   },
   fullName: {
     color: '#1F2937',
@@ -147,7 +191,6 @@ const styles = StyleSheet.create({
     color: '#008A45',
     textTransform: 'uppercase',
     letterSpacing: 2,
-    marginTop: 4,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -224,7 +267,7 @@ const styles = StyleSheet.create({
     color: '#008A45',
   },
   footer: {
-    marginTop: 64,
+    marginTop: 32,
     paddingHorizontal: 24,
     alignItems: 'center',
   },

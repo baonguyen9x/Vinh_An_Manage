@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, View, StyleSheet } from 'react-native';
+import { SafeAreaView, View, StyleSheet, StatusBar } from 'react-native';
 import { Screen, Member, ApprovalRequest } from './types';
 import SplashScreen from './source/Screens/SplashScreen';
 import LoginScreen from './source/Screens/LoginScreen';
@@ -23,7 +23,7 @@ const INITIAL_USER: Member = {
   email: '',
   phone: '',
   joinDate: '',
-  avatar: 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
+  avatar: '',
   rank: '',
   position: '',
   role: '',
@@ -41,27 +41,49 @@ const App: React.FC = () => {
   const [approvals, setApprovals] = useState<ApprovalRequest[]>([]);
 
   useEffect(() => {
-    // Kiểm tra kết nối Firebase
-    const checkFirebase = async () => {
-      try {
-        console.log('--- Checking Firebase Connection ---');
-        const user = auth().currentUser;
-        console.log('Firebase Auth Status:', user ? `Logged in as ${user.email}` : 'Not logged in');
+    if (currentScreen !== Screen.SPLASH) return;
 
-        // Thử đọc một doc nhỏ từ firestore để test permission/config
-        // (Sẽ fail nếu chưa set rule, nhưng ít nhất native config phải ok)
-        const testDoc = await firestore().collection('members').limit(1).get();
-        console.log('Firestore Connection: OK (found ' + testDoc.size + ' docs)');
+    const handleSplash = async () => {
+      // Hiển thị splash tối thiểu 1.5s
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      try {
+        const firebaseUser = auth().currentUser;
+        console.log('Firebase Auth Status:', firebaseUser ? `Logged in as ${firebaseUser.email}` : 'Not logged in');
+
+        if (firebaseUser) {
+          // Đã login trước đó → load thông tin từ Firestore
+          const memberDoc = await firestore().collection('members').doc(firebaseUser.uid).get();
+          const data = memberDoc.data();
+          setUser({
+            ...INITIAL_USER,
+            uid: firebaseUser.uid,
+            fullName: data?.fullName || firebaseUser.displayName || 'Thành viên',
+            email: firebaseUser.email || '',
+            avatar: data?.avatar || INITIAL_USER.avatar,
+            isAdmin: data?.isAdmin || false,
+            role: data?.role || '',
+            rank: data?.rank || '',
+            position: data?.position || '',
+            department: data?.department || '',
+            dharmaName: data?.dharmaName || '',
+            gender: data?.gender || 'Nam',
+            phone: data?.phone || '',
+            joinDate: data?.joinDate || '',
+            promotionRank: data?.promotionRank || '',
+            status: data?.status || 'active',
+          });
+          setCurrentScreen(Screen.HOME);
+        } else {
+          setCurrentScreen(Screen.LOGIN);
+        }
       } catch (error) {
-        console.error('Firebase Connection Error:', error);
+        console.error('Auth check error:', error);
+        setCurrentScreen(Screen.LOGIN);
       }
     };
-    checkFirebase();
 
-    if (currentScreen === Screen.SPLASH) {
-      const timer = setTimeout(() => setCurrentScreen(Screen.LOGIN), 2000);
-      return () => clearTimeout(timer);
-    }
+    handleSplash();
   }, [currentScreen]);
 
   const navigate = (screen: Screen) => setCurrentScreen(screen);
@@ -74,6 +96,17 @@ const App: React.FC = () => {
       isAdmin: isAdmin
     });
     navigate(Screen.HOME);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await auth().signOut();
+    } catch (e) {
+      console.error('Logout error:', e);
+    } finally {
+      setUser(INITIAL_USER);
+      navigate(Screen.LOGIN);
+    }
   };
 
   const handleAddMemberRequest = async (memberData: any) => {
@@ -96,7 +129,7 @@ const App: React.FC = () => {
       case Screen.LOGIN: return <LoginScreen onLoginSuccess={handleLoginSuccess} onRegister={() => navigate(Screen.REGISTER)} />;
       case Screen.REGISTER: return <RegisterScreen onBack={() => navigate(Screen.LOGIN)} onRegisterSuccess={handleLoginSuccess} />;
       case Screen.HOME: return <HomeScreen user={user} onNavigate={navigate} pendingApprovals={approvals.length} />;
-      case Screen.PROFILE: return <ProfileScreen user={user} onBack={() => navigate(Screen.HOME)} onEdit={() => navigate(Screen.EDIT_PROFILE)} onLogout={() => navigate(Screen.LOGIN)} />;
+      case Screen.PROFILE: return <ProfileScreen user={user} onBack={() => navigate(Screen.HOME)} onEdit={() => navigate(Screen.EDIT_PROFILE)} onLogout={handleLogout} />;
       case Screen.EDIT_PROFILE: return <EditProfileScreen user={user} onBack={() => navigate(Screen.PROFILE)} onUpdate={(u) => { setUser(u); navigate(Screen.PROFILE); }} />;
       case Screen.MEMBER_LIST: return <MemberListScreen onBack={() => navigate(Screen.HOME)} />;
       case Screen.FAMILY_TREE: return <FamilyTreeScreen onBack={() => navigate(Screen.HOME)} onAdd={() => navigate(Screen.ADD_MEMBER)} />;
@@ -108,6 +141,11 @@ const App: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar
+        backgroundColor="#FFFFFF"
+        barStyle="dark-content"
+        translucent={false}
+      />
       <View style={styles.content}>
         {renderContent()}
       </View>

@@ -4,6 +4,7 @@ import WText from '../Common/WText';
 import { GDPT_LOGO, MaterialIcon } from '../Common/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthService } from '../services/firebase';
+import Languages from '../Common/Languages';
 
 interface Props {
   onBack: () => void;
@@ -36,13 +37,13 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegisterSuccess }) => {
     } catch (e: any) {
       console.error(e);
       if (e.code === 'auth/email-already-in-use') {
-        setError('Email này đã được sử dụng');
+        setError(Languages.get('screen.register.error_email_in_use'));
       } else if (e.code === 'auth/invalid-email') {
-        setError('Email không hợp lệ');
+        setError(Languages.get('screen.register.error_invalid_email'));
       } else if (e.code === 'auth/weak-password') {
-        setError('Mật khẩu phải từ 6 ký tự trở lên');
+        setError(Languages.get('screen.register.error_weak_password'));
       } else {
-        setError('Đã có lỗi xảy ra. Vui lòng thử lại sau.');
+        setError(Languages.get('screen.register.error_unknown'));
       }
     } finally {
       setLoading(false);
@@ -60,14 +61,14 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegisterSuccess }) => {
             <GDPT_LOGO width={112} height={112} />
           </View>
 
-          <WText type="medium20" style={styles.titleText}>Đăng ký tài khoản</WText>
+          <WText type="medium20" style={styles.titleText}>{Languages.get('screen.register.title')}</WText>
 
           <View style={styles.formContainer}>
             <View style={styles.inputWrapper}>
               <MaterialIcon name="person-outline" color="#9CA3AF" size={20} style={styles.icon} />
               <TextInput
                 style={styles.input}
-                placeholder="Nhập họ và tên"
+                placeholder={Languages.get('screen.register.placeholder_fullname')}
                 placeholderTextColor="#9CA3AF"
                 value={fullName}
                 onChangeText={setFullName}
@@ -78,7 +79,7 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegisterSuccess }) => {
               <MaterialIcon name="mail-outline" color="#9CA3AF" size={20} style={styles.icon} />
               <TextInput
                 style={styles.input}
-                placeholder="Nhập email"
+                placeholder={Languages.get('screen.register.placeholder_email')}
                 placeholderTextColor="#9CA3AF"
                 value={email}
                 onChangeText={setEmail}
@@ -91,7 +92,7 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegisterSuccess }) => {
               <MaterialIcon name="lock-outline" color="#9CA3AF" size={20} style={styles.icon} />
               <TextInput
                 style={styles.input}
-                placeholder="Nhập mật khẩu (>= 6 ký tự)"
+                placeholder={Languages.get('screen.register.placeholder_password')}
                 placeholderTextColor="#9CA3AF"
                 value={password}
                 onChangeText={setPassword}
@@ -103,7 +104,7 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegisterSuccess }) => {
               <MaterialIcon name="lock-outline" color="#9CA3AF" size={20} style={styles.icon} />
               <TextInput
                 style={styles.input}
-                placeholder="Nhập lại mật khẩu"
+                placeholder={Languages.get('screen.register.placeholder_confirm_password')}
                 placeholderTextColor="#9CA3AF"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -127,14 +128,14 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegisterSuccess }) => {
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <WText type="medium16" style={styles.registerButtonText}>ĐĂNG KÝ</WText>
+                <WText type="medium16" style={styles.registerButtonText}>{Languages.get('screen.register.btn_register')}</WText>
               )}
             </TouchableOpacity>
 
             <View style={styles.loginContainer}>
-              <WText type="regular14" style={styles.loginHint}>Đã có tài khoản? </WText>
+              <WText type="regular14" style={styles.loginHint}>{Languages.get('screen.register.login_hint')}</WText>
               <TouchableOpacity onPress={onBack}>
-                <WText type="medium14" style={styles.loginText}>Quay lại đăng nhập</WText>
+                <WText type="medium14" style={styles.loginText}>{Languages.get('screen.register.btn_back_login')}</WText>
               </TouchableOpacity>
             </View>
           </View>
