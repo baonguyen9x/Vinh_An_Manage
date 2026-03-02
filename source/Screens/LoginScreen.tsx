@@ -41,7 +41,7 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
           <View style={styles.logoOuter}>
             <View style={styles.logoInner}>
               <Image
-                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Gia_%C4%90%C3%ACnh_Ph%E1%BA%ADt_T%E1%BB%AD_Vi%E1%BB%87t_Nam_logo.svg/512px-Gia_%C4%90%C3%ACnh_Ph%E1%BA%ADt_T%E1%BB%AD_Vi%E1%BB%87t_Nam_logo.svg.png" }}
+                source={require('../Images/ic_logo.png')}
                 style={styles.logo}
                 resizeMode="contain"
               />
