@@ -131,7 +131,7 @@ const App: React.FC = () => {
       case Screen.HOME: return <HomeScreen user={user} onNavigate={navigate} pendingApprovals={approvals.length} />;
       case Screen.PROFILE: return <ProfileScreen user={user} onBack={() => navigate(Screen.HOME)} onEdit={() => navigate(Screen.EDIT_PROFILE)} onLogout={handleLogout} />;
       case Screen.EDIT_PROFILE: return <EditProfileScreen user={user} onBack={() => navigate(Screen.PROFILE)} onUpdate={(u) => { setUser(u); navigate(Screen.PROFILE); }} />;
-      case Screen.MEMBER_LIST: return <MemberListScreen onBack={() => navigate(Screen.HOME)} />;
+      case Screen.MEMBER_LIST: return <MemberListScreen onBack={() => navigate(Screen.HOME)} currentUid={user.uid} />;
       case Screen.FAMILY_TREE: return <FamilyTreeScreen onBack={() => navigate(Screen.HOME)} onAdd={() => navigate(Screen.ADD_MEMBER)} />;
       case Screen.ADD_MEMBER: return <AddMemberScreen onBack={() => navigate(Screen.FAMILY_TREE)} onSave={handleAddMemberRequest} />;
       case Screen.APPROVAL: return <ApprovalScreen onBack={() => navigate(Screen.HOME)} />;

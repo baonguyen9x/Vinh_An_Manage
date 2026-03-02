@@ -6,6 +6,7 @@ import { Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from '../Common/Constants';
+import Style from '../Common/Style';
 
 interface Props {
   onBack: () => void;
@@ -317,7 +318,10 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   textInput: {
-    color: '#374151',
+    ...Style.textFontSize12,
+    ...Style.textWeight400,
+    ...Style.fontRegular,
+    color: '#0f1011ff',
     padding: 0,
   },
   pickerBorder: {

@@ -16,6 +16,7 @@ import {
   GENDERS, CATEGORIES, DEPARTMENTS, ORDINATION_LEVELS,
   MemberCategory, RANKS_MAP, getRolesByCategory, getRankKey,
 } from '../Common/MemberEnums';
+import Style from '../Common/Style';
 
 interface Props {
   user: Member;
@@ -715,7 +716,10 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   textInput: {
-    color: '#1F2937',
+    ...Style.textFontSize12,
+    ...Style.textWeight400,
+    ...Style.fontRegular,
+    color: '#0f1011ff',
     padding: 0,
     paddingVertical: Platform.OS === 'ios' ? 2 : 0,
   },

@@ -5,6 +5,7 @@ import { GDPT_LOGO, MaterialIcon } from '../Common/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthService } from '../services/firebase';
 import Languages from '../Common/Languages';
+import Style from '../Common/Style';
 
 interface Props {
   onBack: () => void;
@@ -185,6 +186,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   input: {
+    ...Style.textFontSize12,
+    ...Style.textWeight400,
+    ...Style.fontRegular,
     flex: 1,
     color: '#000000',
     padding: 0,

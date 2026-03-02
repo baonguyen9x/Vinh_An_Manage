@@ -54,14 +54,19 @@ export class MemberService {
         return firestore()
             .collection(COLLECTION)
             .where('status', '==', 'active')
-            .orderBy('fullName', 'asc')
-            .onSnapshot(snapshot => {
-                const members = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as FirestoreMember));
-                callback(members);
-            });
+            .onSnapshot(
+                snapshot => {
+                    if (!snapshot) { callback([]); return; }
+                    const members = snapshot.docs
+                        .map(doc => ({ id: doc.id, ...doc.data() } as FirestoreMember))
+                        .sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'vi'));
+                    callback(members);
+                },
+                error => {
+                    console.error('[MemberService] subscribeAll error:', error);
+                    callback([]);
+                }
+            );
     }
 
     // ─── Lắng nghe real-time 1 member (hồ sơ cá nhân) ───────────

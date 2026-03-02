@@ -124,6 +124,30 @@ class Languages {
       'screen.edit_profile.promotion_a_duc': 'Huynh trưởng A Dục',
       'screen.edit_profile.error_unknown': 'Lỗi không xác định',
 
+      // MemberListScreen
+      'screen.member_list.title': 'Thành viên',
+      'screen.member_list.subtitle': 'thành viên đang sinh hoạt',
+      'screen.member_list.loading': 'Đang tải danh sách...',
+      'screen.member_list.search_placeholder': 'Tìm theo tên hoặc pháp danh...',
+      'screen.member_list.tab_all': 'Tất cả',
+      'screen.member_list.tab_huynh_truong': 'Huynh trưởng',
+      'screen.member_list.tab_doan_sinh': 'Đoàn sinh',
+      'screen.member_list.empty_title': 'Chưa có thành viên',
+      'screen.member_list.empty_sub': 'Danh sách thành viên sẽ hiện ở đây',
+      'screen.member_list.no_result_title': 'Không tìm thấy kết quả',
+      'screen.member_list.no_result_sub': 'Thử tìm với từ khóa khác',
+
+      // MemberDetailModal labels
+      'screen.member_list.detail_role': 'Chức vụ',
+      'screen.member_list.detail_department': 'Ban / Ngành',
+      'screen.member_list.detail_gender': 'Giới tính',
+      'screen.member_list.detail_email': 'Email',
+      'screen.member_list.detail_phone': 'Điện thoại',
+      'screen.member_list.detail_join_date': 'Ngày gia nhập',
+      'screen.member_list.detail_ordination_level': 'Cấp thọ',
+      'screen.member_list.detail_ordination_date': 'Ngày thọ cấp',
+      'screen.member_list.detail_close': 'Đóng',
+
     },
     'zh-Hant': {},
     'zh-Hans': {},
