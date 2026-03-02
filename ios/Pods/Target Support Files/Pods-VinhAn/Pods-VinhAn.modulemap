@@ -1,6 +1,0 @@
-module Pods_VinhAn {
-  umbrella header "Pods-VinhAn-umbrella.h"
-
-  export *
-  module * { export * }
-}

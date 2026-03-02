@@ -1,1 +1,0 @@
-../../../../../node_modules/react-native-exit-app/ios/RNExitApp/RNExitApp.h

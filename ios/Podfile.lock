@@ -1,11 +1,5 @@
 PODS:
   - Alamofire (5.11.1)
-  - AppAuth (2.0.0):
-    - AppAuth/Core (= 2.0.0)
-    - AppAuth/ExternalUserAgent (= 2.0.0)
-  - AppAuth/Core (2.0.0)
-  - AppAuth/ExternalUserAgent (2.0.0):
-    - AppAuth/Core
   - boost (1.84.0)
   - BVLinearGradient (2.8.3):
     - React-Core
@@ -1422,9 +1416,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-app-auth (8.1.0):
-    - AppAuth (>= 1.7.6)
-    - React-Core
   - react-native-biometrics (3.0.1):
     - React-Core
   - react-native-blob-util (0.22.2):
@@ -1592,8 +1583,6 @@ PODS:
     - Yoga
   - react-native-pdf (6.7.7):
     - React-Core
-  - react-native-photo-view-ex (1.0.0):
-    - React
   - react-native-render-html (6.3.4):
     - React-Core
   - react-native-restart (0.0.24):
@@ -2221,7 +2210,6 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
-  - react-native-app-auth (from `../node_modules/react-native-app-auth`)
   - react-native-biometrics (from `../node_modules/react-native-biometrics`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
@@ -2241,7 +2229,6 @@ DEPENDENCIES:
   - react-native-notifications (from `../node_modules/react-native-notifications`)
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
-  - "react-native-photo-view-ex (from `../node_modules/@sunfanz/react-native-photo-view`)"
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-restart (from `../node_modules/react-native-restart`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -2303,7 +2290,6 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - Alamofire
-    - AppAuth
     - FBAEMKit
     - FBSDKCoreKit
     - FBSDKCoreKit_Basics
@@ -2413,8 +2399,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
-  react-native-app-auth:
-    :path: "../node_modules/react-native-app-auth"
   react-native-biometrics:
     :path: "../node_modules/react-native-biometrics"
   react-native-blob-util:
@@ -2453,8 +2437,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-pager-view"
   react-native-pdf:
     :path: "../node_modules/react-native-pdf"
-  react-native-photo-view-ex:
-    :path: "../node_modules/@sunfanz/react-native-photo-view"
   react-native-render-html:
     :path: "../node_modules/react-native-render-html"
   react-native-restart:
@@ -2572,7 +2554,6 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Alamofire: eec6cd8f73b242b59e34153a606a909eb9864b14
-  AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
   boost: 4cb898d0bf20404aab1850c656dcea009429d6c1
   BVLinearGradient: 880f91a7854faff2df62518f0281afb1c60d49a3
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
@@ -2636,7 +2617,6 @@ SPEC CHECKSUMS:
   React-logger: d79b704bf215af194f5213a6b7deec50ba8e6a9b
   React-Mapbuffer: b982d5bba94a8bc073bda48f0d27c9b28417fae3
   React-microtasksnativemodule: 2b73e68f0462f3175f98782db08896f8501afd20
-  react-native-app-auth: 9b0a0e3ca279c3426a451e2607c8483808b8ed4a
   react-native-biometrics: 352e5a794bfffc46a0c86725ea7dc62deb085bdc
   react-native-blob-util: 3c3dc88417b94e750c46c185662a07b2816a6b5e
   react-native-blur: a1bf334589f44658a58a859b1f3defe28e367fcf
@@ -2656,7 +2636,6 @@ SPEC CHECKSUMS:
   react-native-notifications: f56a12d741eeb2fd4d7a418a4689111c50f7cd72
   react-native-pager-view: 2aef9f11fb8f436a68e0c58f7658cad8736d1121
   react-native-pdf: 73accc61238e8e9bc6e376191225028af20b996e
-  react-native-photo-view-ex: 2952e0c6d68ca5854d822b02e0f13e03d6cb23e5
   react-native-render-html: 984dfe2294163d04bf5fe25d7c9f122e60e05ebe
   react-native-restart: 45c8dca02491980f2958595333cbccd6877cb57e
   react-native-safe-area-context: dcab599c527c2d7de2d76507a523d20a0b83823d
