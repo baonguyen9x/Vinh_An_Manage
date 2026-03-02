@@ -29,6 +29,9 @@ android/app/build/
 android/build/
 android/.gradle/
 android/local.properties
+# Keystore - KHÔNG commit lên git (thông tin bảo mật)
+android/keystore.properties
+android/app/vinhan-release.keystore
 
 # iOS build
 ios/build/

@@ -10,6 +10,13 @@ react {
 // react-native-vector-icons: copy font files vào Android assets
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 
+// Đọc keystore từ file properties (bảo mật hơn hardcode)
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 def enableProguardInReleaseBuilds = false
 
 def jscFlavor = 'org.webkit:android-jsc:+'
@@ -35,13 +42,19 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file(keystoreProperties['STORE_FILE'] ?: 'vinhan-release.keystore')
+            storePassword keystoreProperties['STORE_PASSWORD'] ?: ''
+            keyAlias keystoreProperties['KEY_ALIAS'] ?: ''
+            keyPassword keystoreProperties['KEY_PASSWORD'] ?: ''
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
