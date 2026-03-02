@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { View, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import WText from '../Common/WText';
 import { MaterialIcon } from '../Common/Utils';
 
 interface Props {
@@ -10,7 +11,7 @@ interface Props {
 // Helper component for empty states in the tree
 const EmptyState = () => (
   <View style={styles.emptyStateContainer}>
-    <Text style={styles.emptyStateText}>Chưa có thành viên</Text>
+    <WText type="medium10" style={styles.emptyStateText}>Chưa có thành viên</WText>
   </View>
 );
 
@@ -18,7 +19,7 @@ const EmptyState = () => (
 const SubHeader = ({ title }: { title: string }) => (
   <View style={styles.subHeaderContainer}>
     <View style={styles.subHeaderDot} />
-    <Text style={styles.subHeaderText}>{title}</Text>
+    <WText type="medium10" style={styles.subHeaderText}>{title}</WText>
   </View>
 );
 
@@ -32,7 +33,7 @@ interface GroupContainerProps {
 const GroupContainer: React.FC<GroupContainerProps> = ({ title, children, color = "#008A45" }) => (
   <View style={styles.groupContainer}>
     <View style={[styles.groupTitleContainer, { backgroundColor: color }]}>
-      <Text style={styles.groupTitleText}>{title}</Text>
+      <WText type="medium11" style={styles.groupTitleText}>{title}</WText>
     </View>
     <View style={styles.groupContentContainer}>
       {children}
@@ -50,13 +51,13 @@ interface TreeSectionProps {
 const TreeSection: React.FC<TreeSectionProps> = ({ title, children, onAdd }) => (
   <View style={styles.sectionContainer}>
     <View style={styles.sectionHeaderContainer}>
-      <Text style={styles.sectionHeaderText}>{title}</Text>
+      <WText type="medium13" style={styles.sectionHeaderText}>{title}</WText>
       <TouchableOpacity
         onPress={onAdd}
         style={styles.addButton}
         activeOpacity={0.8}
       >
-        <Text style={styles.addButtonText}>Thêm</Text>
+        <WText type="medium11" style={styles.addButtonText}>Thêm</WText>
       </TouchableOpacity>
     </View>
     <View style={styles.sectionContentContainer}>
@@ -73,7 +74,7 @@ const FamilyTreeScreen: React.FC<Props> = ({ onBack, onAdd }) => {
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <MaterialIcon name="arrow-back-ios" size={20} color="#008A45" />
           </TouchableOpacity>
-          <Text style={styles.appBarTitle}>Hệ thống gia phả</Text>
+          <WText type="medium18" style={styles.appBarTitle}>Hệ thống gia phả</WText>
           <View style={{ width: 36 }} />
         </View>
 
@@ -181,8 +182,6 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     color: '#008A45',
-    fontWeight: 'bold',
-    fontSize: 18,
   },
   scrollContent: {
     paddingBottom: 40,
@@ -192,14 +191,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#F3F4F6',
-    borderStyle: 'dashed',
+    borderStyle: 'solid',
     borderRadius: 12,
     marginBottom: 8,
   },
   emptyStateText: {
-    fontSize: 10,
     color: '#D1D5DB',
-    fontWeight: 'bold',
     textTransform: 'uppercase',
     fontStyle: 'italic',
   },
@@ -218,8 +215,6 @@ const styles = StyleSheet.create({
   },
   subHeaderText: {
     color: '#9CA3AF',
-    fontSize: 10,
-    fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
   },
@@ -240,14 +235,12 @@ const styles = StyleSheet.create({
   },
   groupTitleText: {
     color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: 'bold',
   },
   groupContentContainer: {
     paddingLeft: 8,
     borderLeftWidth: 2,
     borderLeftColor: '#F3F4F6',
-    borderStyle: 'dashed',
+    borderStyle: 'solid',
     marginLeft: 4,
   },
   sectionContainer: {
@@ -271,8 +264,6 @@ const styles = StyleSheet.create({
   },
   sectionHeaderText: {
     color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 13,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -286,8 +277,6 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },

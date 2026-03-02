@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import WText from '../Common/WText';
 import { Screen, Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
 
@@ -16,15 +17,15 @@ const HomeScreen: React.FC<Props> = ({ user, onNavigate, pendingApprovals = 0 })
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <Image
-            source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Gia_%C4%90%C3%ACnh_Ph%E1%BA%ADt_T%E1%BB%AD_Vi%E1%BB%87t_Nam_logo.svg/512px-Gia_%C4%90%C3%ACnh_Ph%E1%BA%ADt_T%E1%BB%AD_Vi%E1%BB%87t_Nam_logo.svg.png" }}
+            source={require('../Images/ic_logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
         </View>
-        <Text style={styles.titleText}>GĐPT VĨNH AN</Text>
+        <WText type="medium24" style={styles.titleText}>GĐPT VĨNH AN</WText>
         {user.isAdmin && (
           <View style={styles.adminBadge}>
-            <Text style={styles.adminBadgeText}>Quản trị viên</Text>
+            <WText type="medium9" style={styles.adminBadgeText}>Quản trị viên</WText>
           </View>
         )}
         <View style={styles.divider} />
@@ -71,14 +72,14 @@ const HomeScreen: React.FC<Props> = ({ user, onNavigate, pendingApprovals = 0 })
             activeOpacity={0.8}
           >
             <MaterialIcon name="logout" size={20} color="#DC2626" />
-            <Text style={styles.logoutText}>Đăng xuất</Text>
+            <WText type="medium14" style={styles.logoutText}>Đăng xuất</WText>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Management System v1.0.5</Text>
+        <WText type="medium10" style={styles.footerText}>Management System v1.0.0</WText>
       </View>
     </ScrollView>
   );
@@ -98,13 +99,13 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, description, onClick, 
       <MaterialIcon name={icon} color="#008A45" size={28} />
     </View>
     <View style={styles.menuTextContainer}>
-      <Text style={styles.menuTitle}>{title}</Text>
-      <Text style={styles.menuDesc}>{description}</Text>
+      <WText type="medium16" style={styles.menuTitle}>{title}</WText>
+      <WText type="medium10" style={styles.menuDesc}>{description}</WText>
     </View>
 
     {badge !== undefined && badge > 0 && (
       <View style={styles.badgeContainer}>
-        <Text style={styles.badgeText}>{badge}</Text>
+        <WText type="medium10" style={styles.badgeText}>{badge}</WText>
       </View>
     )}
 
@@ -150,8 +151,6 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: '#008A45',
-    fontWeight: '900',
-    fontSize: 24,
     textTransform: 'uppercase',
     letterSpacing: 2,
     textAlign: 'center',
@@ -170,8 +169,6 @@ const styles = StyleSheet.create({
   },
   adminBadgeText: {
     color: '#b45309',
-    fontSize: 9,
-    fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 2,
   },
@@ -211,14 +208,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuTitle: {
-    fontWeight: 'bold',
     color: '#008A45',
-    fontSize: 16,
   },
   menuDesc: {
-    fontSize: 10,
     color: '#6b7280',
-    fontWeight: '500',
     marginTop: 4,
     textTransform: 'uppercase',
     letterSpacing: -0.5,
@@ -239,8 +232,6 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '900',
   },
   chevronContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
@@ -264,8 +255,6 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: '#DC2626',
-    fontWeight: '900',
-    fontSize: 14,
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginLeft: 12,
@@ -277,9 +266,7 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   footerText: {
-    fontSize: 10,
     textTransform: 'uppercase',
-    fontWeight: 'bold',
     color: '#9ca3af',
     letterSpacing: 2,
   }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import WText from '../Common/WText';
 import { Picker } from '@react-native-picker/picker';
 import { Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
@@ -116,7 +117,7 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <MaterialIcon name="arrow-back" size={24} color="#008A45" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Thêm Thành Viên</Text>
+          <WText type="medium16" style={styles.headerTitle}>Thêm Thành Viên</WText>
           <View style={{ width: 24 }} />
         </View>
 
@@ -138,20 +139,20 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
 
             {formData.position === "Huynh trưởng" && (
               <View style={styles.ordainedSection}>
-                <Text style={styles.sectionLabel}>Tình trạng thọ cấp</Text>
+                <WText type="medium10" style={styles.sectionLabel}>Tình trạng thọ cấp</WText>
                 <View style={styles.ordainedRow}>
                   <TouchableOpacity onPress={() => handleChange('isOrdained', true)} style={styles.ordainedOption} activeOpacity={0.7}>
                     <View style={[styles.checkbox, formData.isOrdained && styles.checkboxActive]}>
                       {formData.isOrdained && <MaterialIcon name="check" size={14} color="#FFF" />}
                     </View>
-                    <Text style={[styles.ordainedText, formData.isOrdained && styles.ordainedTextActive]}>Đã thọ cấp</Text>
+                    <WText type="medium14" style={[styles.ordainedText, formData.isOrdained && styles.ordainedTextActive]}>Đã thọ cấp</WText>
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={() => handleChange('isOrdained', false)} style={styles.ordainedOption} activeOpacity={0.7}>
                     <View style={[styles.checkbox, !formData.isOrdained && styles.checkboxActive]}>
                       {!formData.isOrdained && <MaterialIcon name="check" size={14} color="#FFF" />}
                     </View>
-                    <Text style={[styles.ordainedText, !formData.isOrdained && styles.ordainedTextActive]}>Chưa thọ cấp</Text>
+                    <WText type="medium14" style={[styles.ordainedText, !formData.isOrdained && styles.ordainedTextActive]}>Chưa thọ cấp</WText>
                   </TouchableOpacity>
                 </View>
 
@@ -170,16 +171,16 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
             {!!error && (
               <View style={styles.errorBox}>
                 <MaterialIcon name="error-outline" size={18} color="#EF4444" />
-                <Text style={styles.errorText}>{error}</Text>
+                <WText type="medium11" style={styles.errorText}>{error}</WText>
               </View>
             )}
 
             <View style={styles.promotionSection}>
-              <Text style={styles.sectionLabel}>Cấp bậc (Tự động)</Text>
+              <WText type="medium10" style={styles.sectionLabel}>Cấp bậc (Tự động)</WText>
               <View style={styles.promotionBox}>
-                <Text style={styles.promotionBoxText}>
+                <WText type="medium14" style={styles.promotionBoxText}>
                   {formData.promotionRank || "Chưa xác định"}
-                </Text>
+                </WText>
               </View>
             </View>
 
@@ -194,7 +195,7 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
             style={styles.saveButton}
             activeOpacity={0.8}
           >
-            <Text style={styles.saveButtonText}>GỬI YÊU CẦU THÊM</Text>
+            <WText type="medium14" style={styles.saveButtonText}>GỬI YÊU CẦU THÊM</WText>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -204,7 +205,7 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
 
 const InputField: React.FC<{ label: string, value: string, onChange: (v: string) => void }> = ({ label, value, onChange }) => (
   <View style={styles.fieldContainer}>
-    <Text style={styles.fieldLabel}>{label}</Text>
+    <WText type="medium10" style={styles.fieldLabel}>{label}</WText>
     <View style={styles.inputBorder}>
       <TextInput
         style={styles.textInput}
@@ -219,7 +220,7 @@ const InputField: React.FC<{ label: string, value: string, onChange: (v: string)
 
 const SelectField: React.FC<{ label: string, value: string, options: string[], onChange: (v: string) => void }> = ({ label, value, options, onChange }) => (
   <View style={styles.fieldContainer}>
-    <Text style={styles.fieldLabel}>{label}</Text>
+    <WText type="medium10" style={styles.fieldLabel}>{label}</WText>
     <View style={styles.pickerBorder}>
       <Picker
         selectedValue={value}
@@ -255,8 +256,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 16,
-    fontWeight: 'bold',
     color: '#008A45',
     textTransform: 'uppercase',
   },
@@ -305,8 +304,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   fieldLabel: {
-    fontSize: 10,
-    fontWeight: '900',
     color: '#9CA3AF',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -318,8 +315,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   textInput: {
-    fontSize: 16,
-    fontWeight: 'bold',
     color: '#374151',
     padding: 0,
   },
@@ -340,8 +335,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionLabel: {
-    fontSize: 10,
-    fontWeight: '900',
     color: '#9CA3AF',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -372,8 +365,6 @@ const styles = StyleSheet.create({
     borderColor: '#008A45',
   },
   ordainedText: {
-    fontSize: 14,
-    fontWeight: 'bold',
     color: '#6B7280',
   },
   ordainedTextActive: {
@@ -397,8 +388,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#DC2626',
-    fontSize: 11,
-    fontWeight: 'bold',
     marginLeft: 8,
     flex: 1,
   },
@@ -411,12 +400,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0, 138, 69, 0.2)',
-    borderStyle: 'dashed',
+    borderStyle: 'solid',
   },
   promotionBoxText: {
     color: '#008A45',
-    fontWeight: 'bold',
-    fontSize: 14,
     textTransform: 'uppercase',
   },
   saveButton: {
@@ -432,8 +419,6 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 14,
     letterSpacing: 2,
   }
 });

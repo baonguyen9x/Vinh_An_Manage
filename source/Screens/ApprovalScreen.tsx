@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { View, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import WText from '../Common/WText';
 import { ApprovalRequest } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
 
@@ -17,7 +18,7 @@ const ApprovalScreen: React.FC<Props> = ({ requests, onBack, onAction }) => {
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <MaterialIcon name="arrow-back" size={20} color="#008A45" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Phê duyệt yêu cầu</Text>
+          <WText type="medium18" style={styles.headerTitle}>Phê duyệt yêu cầu</WText>
           <View style={{ width: 40 }} />
         </View>
 
@@ -25,7 +26,7 @@ const ApprovalScreen: React.FC<Props> = ({ requests, onBack, onAction }) => {
           {requests.length === 0 ? (
             <View style={styles.emptyStateContainer}>
               <MaterialIcon name="task-alt" size={64} color="#D1D5DB" />
-              <Text style={styles.emptyStateText}>Tất cả đã được xử lý</Text>
+              <WText type="medium14" style={styles.emptyStateText}>Tất cả đã được xử lý</WText>
             </View>
           ) : (
             requests.map(req => (
@@ -36,19 +37,19 @@ const ApprovalScreen: React.FC<Props> = ({ requests, onBack, onAction }) => {
                       <MaterialIcon name="person-add" size={24} color="#008A45" />
                     </View>
                     <View style={styles.userNameContainer}>
-                      <Text style={styles.fullNameText}>{req.memberData.fullName}</Text>
-                      <Text style={styles.dharmaNameText}>PD: {req.memberData.dharmaName}</Text>
+                      <WText type="medium14" style={styles.fullNameText}>{req.memberData.fullName}</WText>
+                      <WText type="medium11" style={styles.dharmaNameText}>PD: {req.memberData.dharmaName}</WText>
                     </View>
                   </View>
-                  <Text style={styles.dateText}>{req.requestDate}</Text>
+                  <WText type="medium9" style={styles.dateText}>{req.requestDate}</WText>
                 </View>
 
                 <View style={styles.infoGrid}>
                   <View style={styles.infoBox}>
-                    <Text style={styles.infoLabel}>Ngành: <Text style={styles.infoValue}>{req.memberData.department}</Text></Text>
+                    <WText type="medium10" style={styles.infoLabel}>Ngành: <WText type="regular10" style={styles.infoValue}>{req.memberData.department}</WText></WText>
                   </View>
                   <View style={styles.infoBox}>
-                    <Text style={styles.infoLabel}>Chức vụ: <Text style={styles.infoValue}>{req.memberData.position}</Text></Text>
+                    <WText type="medium10" style={styles.infoLabel}>Chức vụ: <WText type="regular10" style={styles.infoValue}>{req.memberData.position}</WText></WText>
                   </View>
                 </View>
 
@@ -58,7 +59,7 @@ const ApprovalScreen: React.FC<Props> = ({ requests, onBack, onAction }) => {
                     style={styles.rejectButton}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.rejectButtonText}>Từ chối</Text>
+                    <WText type="medium11" style={styles.rejectButtonText}>Từ chối</WText>
                   </TouchableOpacity>
                   <View style={{ width: 8 }} />
                   <TouchableOpacity
@@ -66,7 +67,7 @@ const ApprovalScreen: React.FC<Props> = ({ requests, onBack, onAction }) => {
                     style={styles.approveButton}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.approveButtonText}>Phê duyệt</Text>
+                    <WText type="medium11" style={styles.approveButtonText}>Phê duyệt</WText>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -75,7 +76,7 @@ const ApprovalScreen: React.FC<Props> = ({ requests, onBack, onAction }) => {
         </ScrollView>
 
         <View style={styles.footerContainer}>
-          <Text style={styles.footerText}>Hệ thống bảo mật nội bộ</Text>
+          <WText type="medium9" style={styles.footerText}>Hệ thống bảo mật nội bộ</WText>
         </View>
       </View>
     </SafeAreaView>
@@ -114,8 +115,6 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     color: '#008A45',
-    fontWeight: '900',
-    fontSize: 18,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -131,7 +130,6 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     marginTop: 16,
-    fontWeight: 'bold',
     color: '#6B7280',
   },
   card: {
@@ -171,21 +169,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fullNameText: {
-    fontWeight: '900',
     color: '#1A3A5F',
     textTransform: 'uppercase',
-    fontSize: 14,
     marginBottom: 2,
   },
   dharmaNameText: {
-    fontSize: 11,
     color: '#008A45',
-    fontWeight: 'bold',
   },
   dateText: {
-    fontSize: 9,
     color: '#9CA3AF',
-    fontWeight: 'bold',
     textTransform: 'uppercase',
   },
   infoGrid: {
@@ -200,9 +192,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   infoLabel: {
-    fontSize: 10,
     color: '#9CA3AF',
-    fontWeight: 'bold',
     textTransform: 'uppercase',
   },
   infoValue: {
@@ -222,8 +212,6 @@ const styles = StyleSheet.create({
   },
   rejectButtonText: {
     color: '#EF4444',
-    fontWeight: '900',
-    fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 2,
   },
@@ -241,8 +229,6 @@ const styles = StyleSheet.create({
   },
   approveButtonText: {
     color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 2,
   },
@@ -252,8 +238,6 @@ const styles = StyleSheet.create({
     opacity: 0.2,
   },
   footerText: {
-    fontSize: 9,
-    fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 3,
   }

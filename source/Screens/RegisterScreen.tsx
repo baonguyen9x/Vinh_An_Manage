@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import WText from '../Common/WText';
 import { GDPT_LOGO, MaterialIcon } from '../Common/Utils';
 
 interface Props {
@@ -25,7 +26,7 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegister }) => {
             <GDPT_LOGO width={112} height={112} />
           </View>
 
-          <Text style={styles.titleText}>Đăng ký tài khoản</Text>
+          <WText type="medium20" style={styles.titleText}>Đăng ký tài khoản</WText>
 
           <View style={styles.formContainer}>
             <View style={styles.inputWrapper}>
@@ -73,13 +74,13 @@ const RegisterScreen: React.FC<Props> = ({ onBack, onRegister }) => {
               disabled={!isFormValid}
               activeOpacity={0.8}
             >
-              <Text style={styles.registerButtonText}>ĐĂNG KÝ</Text>
+              <WText type="medium16" style={styles.registerButtonText}>ĐĂNG KÝ</WText>
             </TouchableOpacity>
 
             <View style={styles.loginContainer}>
-              <Text style={styles.loginHint}>Đã có tài khoản? </Text>
+              <WText type="regular14" style={styles.loginHint}>Đã có tài khoản? </WText>
               <TouchableOpacity onPress={onBack}>
-                <Text style={styles.loginText}>Quay lại đăng nhập</Text>
+                <WText type="medium14" style={styles.loginText}>Quay lại đăng nhập</WText>
               </TouchableOpacity>
             </View>
           </View>
@@ -107,8 +108,6 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   titleText: {
-    fontSize: 20,
-    fontWeight: 'bold',
     color: '#008A45',
     marginBottom: 32,
     textAlign: 'center',
@@ -132,7 +131,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 16,
     color: '#000000',
     padding: 0,
   },
@@ -151,8 +149,6 @@ const styles = StyleSheet.create({
   },
   registerButtonText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
   loginContainer: {
     flexDirection: 'row',
@@ -161,12 +157,9 @@ const styles = StyleSheet.create({
   },
   loginHint: {
     color: '#6B7280',
-    fontSize: 14,
   },
   loginText: {
     color: '#008A45',
-    fontSize: 14,
-    fontWeight: 'bold',
   }
 });
 

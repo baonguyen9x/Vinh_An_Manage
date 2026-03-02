@@ -1,0 +1,21 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "source/Fonts/SVN-Poppins-SemiBold.ttf",
+      "sha1": "12db5152fa61c90c365a89d79c7bb71acfc5310c"
+    },
+    {
+      "path": "source/Fonts/SVN-Poppins-Regular.ttf",
+      "sha1": "9d76f60c4c410ffd38aa0b6a6f515b54022d108a"
+    },
+    {
+      "path": "source/Fonts/SVN-Poppins-Medium.ttf",
+      "sha1": "82c39d085f572155a97e0b729766269f9c4eca2b"
+    },
+    {
+      "path": "source/Fonts/SVN-Poppins-Bold.ttf",
+      "sha1": "e5f34f950881d8cd5e5bf454e239fb39ffde5b36"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet } from 'react-native';
+import WText from '../Common/WText';
 import Languages from '../Common/Languages';
 
 const SplashScreen: React.FC = () => {
@@ -8,15 +9,15 @@ const SplashScreen: React.FC = () => {
       <View style={styles.logoContainer}>
         <View style={styles.logoWrapper}>
           <Image
-            source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Gia_%C4%90%C3%ACnh_Ph%E1%BA%ADt_T%E1%BB%AD_Vi%E1%BB%87t_Nam_logo.svg/512px-Gia_%C4%90%C3%ACnh_Ph%E1%BA%ADt_T%E1%BB%AD_Vi%E1%BB%87t_Nam_logo.svg.png" }}
+            source={require('../Images/ic_logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
         </View>
       </View>
-      <Text style={styles.titleText}>
+      <WText type="medium24" style={styles.titleText}>
         {Languages.get('splash.title')}
-      </Text>
+      </WText>
     </View>
   );
 };
@@ -47,13 +48,10 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   titleText: {
-    fontSize: 24,
-    fontWeight: 'bold',
     color: '#008A45',
     textAlign: 'center',
     textTransform: 'uppercase',
     letterSpacing: 2,
-    lineHeight: 32,
   }
 });
 

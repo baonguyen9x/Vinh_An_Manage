@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, Image, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import WText from '../Common/WText';
 import { MaterialIcon } from '../Common/Utils';
 
 interface Props {
@@ -49,13 +50,13 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
           </View>
 
           <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>GĐPT Vĩnh An</Text>
-            <Text style={styles.subtitleText}>Tinh tấn - Hỷ xả</Text>
+            <WText type="medium24" style={styles.titleText}>GĐPT Vĩnh An</WText>
+            <WText type="medium14" style={styles.subtitleText}>Tinh tấn - Hỷ xả</WText>
           </View>
 
           <View style={styles.formContainer}>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Tên đăng nhập</Text>
+              <WText type="medium10" style={styles.inputLabel}>Tên đăng nhập</WText>
               <View style={styles.inputWrapper}>
                 <MaterialIcon name="person" color="#008A45" size={20} />
                 <TextInput
@@ -68,7 +69,7 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Mật khẩu</Text>
+              <WText type="medium10" style={styles.inputLabel}>Mật khẩu</WText>
               <View style={styles.inputWrapper}>
                 <MaterialIcon name="lock" color="#008A45" size={20} />
                 <TextInput
@@ -81,7 +82,7 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
             </View>
 
             {!!error && (
-              <Text style={styles.errorText}>{error}</Text>
+              <WText type="medium11" style={styles.errorText}>{error}</WText>
             )}
 
             <TouchableOpacity
@@ -89,19 +90,19 @@ const LoginScreen: React.FC<Props> = ({ onLoginSuccess, onRegister }) => {
               style={styles.loginButton}
               activeOpacity={0.8}
             >
-              <Text style={styles.loginButtonText}>ĐĂNG NHẬP</Text>
+              <WText type="medium14" style={styles.loginButtonText}>ĐĂNG NHẬP</WText>
             </TouchableOpacity>
 
             <View style={styles.registerContainer}>
               <TouchableOpacity onPress={onRegister}>
-                <Text style={styles.registerText}>Chưa có tài khoản? Đăng ký ngay</Text>
+                <WText type="medium12" style={styles.registerText}>Chưa có tài khoản? Đăng ký ngay</WText>
               </TouchableOpacity>
             </View>
           </View>
 
-          <Text style={styles.versionText}>
-            Version 1.0.5 (Admin Edition)
-          </Text>
+          <WText type="regular10" style={styles.versionText}>
+            Version v1.0.0
+          </WText>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -149,17 +150,13 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   titleText: {
-    fontSize: 24,
-    fontWeight: 'bold',
     color: '#008A45',
     textTransform: 'uppercase',
     letterSpacing: -0.5,
   },
   subtitleText: {
     color: '#9CA3AF',
-    fontSize: 14,
     fontStyle: 'italic',
-    fontWeight: '500',
     marginTop: 4,
   },
   formContainer: {
@@ -169,8 +166,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   inputLabel: {
-    fontSize: 10,
-    fontWeight: 'bold',
     color: '#008A45',
     textTransform: 'uppercase',
     marginLeft: 16,
@@ -194,9 +189,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#EF4444',
-    fontSize: 11,
     textAlign: 'center',
-    fontWeight: '500',
     marginBottom: 16,
   },
   loginButton: {
@@ -214,8 +207,6 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
   registerContainer: {
     alignItems: 'center',
@@ -223,12 +214,9 @@ const styles = StyleSheet.create({
   },
   registerText: {
     color: '#008A45',
-    fontWeight: 'bold',
-    fontSize: 12,
   },
   versionText: {
     marginTop: 48,
-    fontSize: 10,
     color: '#D1D5DB',
     textTransform: 'uppercase',
     letterSpacing: 3,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { View, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import WText from '../Common/WText';
 import { Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
 
@@ -25,7 +26,7 @@ const MemberListScreen: React.FC<Props> = ({ onBack }) => {
             <TouchableOpacity onPress={onBack} style={styles.backButton}>
               <MaterialIcon name="arrow-back" size={24} color="#008A45" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Thành viên</Text>
+            <WText type="medium24" style={styles.headerTitle}>Thành viên</WText>
           </View>
 
           <View style={styles.searchContainer}>
@@ -50,22 +51,22 @@ const MemberListScreen: React.FC<Props> = ({ onBack }) => {
 
               <View style={styles.infoContainer}>
                 <View style={styles.nameRow}>
-                  <Text style={styles.fullName}>{member.fullName}</Text>
+                  <WText type="medium16" style={styles.fullName}>{member.fullName}</WText>
                   <View style={styles.rankBadge}>
-                    <Text style={styles.rankText}>{member.rank}</Text>
+                    <WText type="medium9" style={styles.rankText}>{member.rank}</WText>
                   </View>
                 </View>
 
-                <Text style={styles.dharmaName}>{member.dharmaName}</Text>
+                <WText type="medium12" style={styles.dharmaName}>{member.dharmaName}</WText>
 
                 <View style={styles.metaRow}>
                   <View style={styles.metaItem}>
                     <MaterialIcon name="work-outline" size={12} color="#9CA3AF" />
-                    <Text style={styles.metaText}>{member.position}</Text>
+                    <WText type="medium10" style={styles.metaText}>{member.position}</WText>
                   </View>
                   <View style={styles.metaItem}>
                     <MaterialIcon name="category" size={12} color="#9CA3AF" />
-                    <Text style={styles.metaText}>{member.department}</Text>
+                    <WText type="medium10" style={styles.metaText}>{member.department}</WText>
                   </View>
                 </View>
               </View>
@@ -75,7 +76,7 @@ const MemberListScreen: React.FC<Props> = ({ onBack }) => {
           {filtered.length === 0 && (
             <View style={styles.emptyState}>
               <MaterialIcon name="person-search" size={64} color="#D1D5DB" />
-              <Text style={styles.emptyStateText}>Không có thành viên nào</Text>
+              <WText type="medium14" style={styles.emptyStateText}>Không có thành viên nào</WText>
             </View>
           )}
         </ScrollView>
@@ -118,8 +119,6 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
     color: '#1F2937',
   },
   searchContainer: {
@@ -133,8 +132,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '500',
     color: '#1F2937',
     height: '100%',
   },
@@ -192,8 +189,6 @@ const styles = StyleSheet.create({
   },
   fullName: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: 'bold',
     color: '#1F2937',
     marginRight: 8,
   },
@@ -204,14 +199,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   rankText: {
-    fontSize: 9,
-    fontWeight: 'bold',
     color: '#008A45',
     textTransform: 'uppercase',
   },
   dharmaName: {
-    fontSize: 12,
-    fontWeight: 'bold',
     color: '#008A45',
     marginTop: 2,
   },
@@ -226,8 +217,6 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   metaText: {
-    fontSize: 10,
-    fontWeight: 'bold',
     color: '#9CA3AF',
     textTransform: 'uppercase',
     marginLeft: 4,
@@ -240,7 +229,6 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     marginTop: 16,
-    fontWeight: 'bold',
     color: '#9CA3AF',
   }
 });

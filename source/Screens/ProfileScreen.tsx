@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import WText from '../Common/WText';
 import { Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
 
@@ -31,8 +32,8 @@ const ProfileScreen: React.FC<Props> = ({ user, onBack, onEdit, onLogout }) => {
       </View>
 
       <View style={styles.infoSection}>
-        <Text style={styles.fullName}>{user.fullName}</Text>
-        <Text style={styles.dharmaName}>{user.dharmaName}</Text>
+        <WText type="medium24" style={styles.fullName}>{user.fullName}</WText>
+        <WText type="medium14" style={styles.dharmaName}>{user.dharmaName}</WText>
 
         <View style={styles.statsContainer}>
           <StatBox label="Chức vụ" value={user.role || user.position} />
@@ -53,7 +54,7 @@ const ProfileScreen: React.FC<Props> = ({ user, onBack, onEdit, onLogout }) => {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Thông tin hồ sơ nội bộ GĐPT Vĩnh An</Text>
+        <WText type="medium10" style={styles.footerText}>Thông tin hồ sơ nội bộ GĐPT Vĩnh An</WText>
       </View>
     </ScrollView>
   );
@@ -61,8 +62,8 @@ const ProfileScreen: React.FC<Props> = ({ user, onBack, onEdit, onLogout }) => {
 
 const StatBox = ({ label, value }: any) => (
   <View style={styles.statBox}>
-    <Text style={styles.statBoxValue}>{value || '-'}</Text>
-    <Text style={styles.statBoxLabel}>{label}</Text>
+    <WText type="medium13" style={styles.statBoxValue}>{value || '-'}</WText>
+    <WText type="medium9" style={styles.statBoxLabel}>{label}</WText>
   </View>
 );
 
@@ -72,8 +73,8 @@ const ProfileTile = ({ icon, label, value, highlight }: any) => (
       <MaterialIcon name={icon} size={22} color={highlight ? '#008A45' : '#008A45'} />
     </View>
     <View style={[styles.tileTextContainer, !highlight && styles.tileTextBorder]}>
-      <Text style={styles.tileLabel}>{label}</Text>
-      <Text style={[styles.tileValue, highlight && styles.tileValueHighlight]}>{value || '-'}</Text>
+      <WText type="medium10" style={styles.tileLabel}>{label}</WText>
+      <WText type="medium16" style={[styles.tileValue, highlight && styles.tileValueHighlight]}>{value || '-'}</WText>
     </View>
   </View>
 );
@@ -140,14 +141,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   fullName: {
-    fontSize: 24,
-    fontWeight: 'bold',
     color: '#1F2937',
   },
   dharmaName: {
-    fontSize: 14,
     color: '#008A45',
-    fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginTop: 4,
@@ -165,15 +162,11 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   statBoxValue: {
-    fontWeight: 'bold',
     color: '#1F2937',
-    fontSize: 13,
     textAlign: 'center',
   },
   statBoxLabel: {
-    fontSize: 9,
     color: '#9CA3AF',
-    fontWeight: 'bold',
     textTransform: 'uppercase',
     marginTop: 2,
   },
@@ -219,15 +212,11 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   tileLabel: {
-    fontSize: 10,
     color: '#9CA3AF',
-    fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   tileValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
     color: '#374151',
     marginTop: 2,
   },
@@ -240,9 +229,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 10,
     color: '#D1D5DB',
-    fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
   }
