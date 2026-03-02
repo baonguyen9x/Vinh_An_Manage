@@ -1,0 +1,7 @@
+{
+  "name": "GĐPT Vĩnh An Management",
+  "description": "A comprehensive member management application for the Vĩnh An Buddhist Youth Family, featuring profiles, member lists, and organizational hierarchy.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
