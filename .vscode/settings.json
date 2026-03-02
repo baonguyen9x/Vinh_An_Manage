@@ -1,0 +1,25 @@
+{
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "files.exclude": {
+        "android/app/build": true,
+        "android/build": true,
+        "android/.gradle": true,
+        "ios/build": true,
+        "ios/Pods": true,
+        "ios/.xcode.env.local": true
+    },
+    "files.watcherExclude": {
+        "**/android/app/build/**": true,
+        "**/android/build/**": true,
+        "**/android/.gradle/**": true,
+        "**/ios/build/**": true,
+        "**/ios/Pods/**": true
+    },
+    "search.exclude": {
+        "**/android/app/build": true,
+        "**/android/build": true,
+        "**/android/.gradle": true,
+        "**/ios/build": true,
+        "**/ios/Pods": true
+    }
+}

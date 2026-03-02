@@ -1,21 +1,48 @@
 buildscript {
     ext {
-        buildToolsVersion = "34.0.0"
+        buildToolsVersion = "35.0.0"
         minSdkVersion = 23
-        compileSdkVersion = 34
-        targetSdkVersion = 34
+        compileSdkVersion = 35
+        targetSdkVersion = 35
         ndkVersion = "26.1.10909125"
         kotlinVersion = "1.9.24"
     }
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven { url "https://maven.scijava.org/content/repositories/public/" }
     }
     dependencies {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        // classpath("com.google.gms:google-services:4.4.2") // TODO: Thêm lại sau khi tạo Firebase project
     }
+
+    allprojects {
+        repositories {
+            google()
+            mavenCentral()
+            maven { url 'https://jitpack.io' }
+            maven { url "https://maven.scijava.org/content/repositories/public/" }
+        }
+    }
+
+    subprojects { subproject ->
+        afterEvaluate{
+            if((subproject.plugins.hasPlugin('android') || subproject.plugins.hasPlugin('android-library'))) {
+                android {
+                    compileSdkVersion rootProject.ext.compileSdkVersion
+                    buildToolsVersion rootProject.ext.buildToolsVersion
+                }
+            }
+        }
+    }
+}
+
+ext {
+    REACT_NATIVE_NODE_MODULES_DIR = "$rootDir/../node_modules/react-native"
 }
 
 apply plugin: "com.facebook.react.rootproject"
