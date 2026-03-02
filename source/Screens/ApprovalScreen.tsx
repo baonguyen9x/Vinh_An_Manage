@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import WText from '../Common/WText';
 import { ApprovalRequest } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Props {
   requests: ApprovalRequest[];

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { View, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
 import WText from '../Common/WText';
 import { Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const MOCK_MEMBERS: Member[] = [];
 

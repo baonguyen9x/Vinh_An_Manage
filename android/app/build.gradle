@@ -7,6 +7,9 @@ react {
     autolinkLibrariesWithApp()
 }
 
+// react-native-vector-icons: copy font files vào Android assets
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+
 def enableProguardInReleaseBuilds = false
 
 def jscFlavor = 'org.webkit:android-jsc:+'
@@ -21,6 +24,9 @@ android {
         applicationId "com.vinhan.dev"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+    }
+    buildFeatures {
+        buildConfig = true
     }
     signingConfigs {
         debug {

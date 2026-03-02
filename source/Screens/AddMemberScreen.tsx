@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, KeyboardAvoidingView } from 'react-native';
 import WText from '../Common/WText';
 import { Picker } from '@react-native-picker/picker';
 import { Member } from '../../types';
 import { MaterialIcon } from '../Common/Utils';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Constants from '../Common/Constants';
 
 interface Props {
   onBack: () => void;
@@ -112,7 +114,7 @@ const AddMemberScreen: React.FC<Props> = ({ onBack, onSave }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
+      <KeyboardAvoidingView behavior={Constants.IS_IOS ? 'padding' : undefined} style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <MaterialIcon name="arrow-back" size={24} color="#008A45" />

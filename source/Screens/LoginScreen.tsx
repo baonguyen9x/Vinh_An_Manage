@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Image, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, Image, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import WText from '../Common/WText';
 import { MaterialIcon } from '../Common/Utils';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Props {
   onLoginSuccess: (isAdmin: boolean) => void;
